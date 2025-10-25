@@ -120,10 +120,9 @@ fun MainScreen(navController: NavController) {
                             note.title.contains(searchQuery, ignoreCase = true)
                 }
             ) { note ->
-                NoteItem(
+                NoteItemTitle(
                     title = note.title,
-                    description = note.description,
-                    imageUri = note.imageUri,
+
                     onClick = {
                         val titleEncoded = Uri.encode(note.title)
                         val descEncoded = Uri.encode(note.description)
