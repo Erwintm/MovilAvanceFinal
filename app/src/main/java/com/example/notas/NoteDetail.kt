@@ -5,17 +5,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.notas.data.Note
 import com.example.notas.viewmodel.NoteViewModel
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     navController: NavController,
+    noteId: Int,
     initialTitle: String,
     initialDescription: String,
     imageUri: String?
@@ -23,7 +25,7 @@ fun NoteDetailScreen(
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription) }
 
-    val context = navController.context.applicationContext as TodoApplication
+    val context = LocalContext.current.applicationContext as TodoApplication
     val viewModel = remember { NoteViewModel(context.repository) }
 
     Scaffold(
@@ -57,29 +59,27 @@ fun NoteDetailScreen(
             Spacer(Modifier.height(20.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = { /* Aquí puedes agregar función de editar */ }) {
+                Button(onClick = { /* Aquí puedes agregar función de editar si quieres */ }) {
                     Text("Editar")
                 }
-                val context = LocalContext.current.applicationContext as TodoApplication
-                val viewModel = remember { NoteViewModel(context.repository) }
+
                 Button(
                     onClick = {
-                        viewModel.deleteNote(Note(title = initialTitle, description = initialDescription, imageUri = imageUri))
-                        navController.popBackStack()
-                        // Crear la nota a eliminar
+                        // Crear la nota usando el ID para eliminar correctamente
                         val noteToDelete = Note(
+                            id = noteId,
                             title = title,
                             description = description,
                             imageUri = imageUri
                         )
 
-                        // Llamar al ViewModel para eliminarla
+                        // Llamar al ViewModel para eliminar la nota
                         viewModel.deleteNote(noteToDelete)
 
-                        // Regresar al listado
+                        // Regresar al listado principal
                         navController.popBackStack()
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
                 ) {
                     Text("Eliminar", color = MaterialTheme.colorScheme.onError)
                 }

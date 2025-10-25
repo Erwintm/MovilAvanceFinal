@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -19,9 +21,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.notas.viewmodel.NoteViewModel
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,15 +48,18 @@ fun MyApp() {
             AddNote(navController)
         }
 
-        // Pantalla de detalle
+        // Pantalla de detalle con noteId
         composable(
-            route = "detail/{title}/{description}/{imageUri}"
+            route = "detail/{noteId}/{title}/{description}/{imageUri}"
         ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: 0
             val title = backStackEntry.arguments?.getString("title") ?: ""
             val description = backStackEntry.arguments?.getString("description") ?: ""
             val imageUri = backStackEntry.arguments?.getString("imageUri")
+
             NoteDetailScreen(
                 navController = navController,
+                noteId = noteId,
                 initialTitle = title,
                 initialDescription = description,
                 imageUri = imageUri
@@ -79,7 +81,7 @@ fun MainScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A1A1A))
+            .background(Color(0xFF0D1117)) // Fondo oscuro estilo chat
             .padding(16.dp)
     ) {
         Row(
@@ -100,6 +102,23 @@ fun MainScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Row {
+            listOf("All", "Notes", "Tasks").forEach { option ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(end = 16.dp)
+                ) {
+                    RadioButton(
+                        selected = selectedFilter == option,
+                        onClick = { selectedFilter = option }
+                    )
+                    Text(option)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         LazyColumn {
             items(
                 notes.filter { note ->
@@ -115,7 +134,7 @@ fun MainScreen(navController: NavController) {
                         val titleEncoded = Uri.encode(note.title)
                         val descEncoded = Uri.encode(note.description)
                         val imgEncoded = note.imageUri?.let { Uri.encode(it) } ?: ""
-                        navController.navigate("detail/$titleEncoded/$descEncoded/$imgEncoded")
+                        navController.navigate("detail/${note.id}/$titleEncoded/$descEncoded/$imgEncoded")
                     }
                 )
             }
