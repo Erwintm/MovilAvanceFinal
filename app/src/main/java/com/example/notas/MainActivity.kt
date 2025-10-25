@@ -19,6 +19,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.notas.viewmodel.NoteViewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,66 +73,70 @@ fun MainScreen(navController: NavController) {
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("All") }
-
     val notes by viewModel.getAllNotes().collectAsState(initial = emptyList())
 
-    Column(
+    // Azul claro
+    val backgroundColor = Color(0xFFB3E5FC) // Puedes cambiar el código hex al tono que quieras
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(backgroundColor)
             .padding(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                label = { Text(text = "Buscar") },
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { navController.navigate("add") }) {
-                Text("Agregar")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Row {
-            listOf("All", "Notes", "Tasks").forEach { option ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(end = 16.dp)
-                ) {
-                    RadioButton(
-                        selected = selectedFilter == option,
-                        onClick = { selectedFilter = option }
-                    )
-                    Text(option)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn {
-            items(
-                notes.filter { note ->
-                    (selectedFilter == "All" ||
-                            (selectedFilter == "Notes" && !note.title.contains("Tarea", ignoreCase = true)) ||
-                            (selectedFilter == "Tasks" && note.title.contains("Tarea", ignoreCase = true))) &&
-                            note.title.contains(searchQuery, ignoreCase = true)
-                }
-            ) { note ->
-                NoteItemTitle(
-                    title = note.title,
-
-                    onClick = {
-                        val titleEncoded = Uri.encode(note.title)
-                        val descEncoded = Uri.encode(note.description)
-                        val imgEncoded = note.imageUri?.let { Uri.encode(it) } ?: ""
-                        navController.navigate("detail/$titleEncoded/$descEncoded/$imgEncoded")
-                    }
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text(text = "Buscar") },
+                    modifier = Modifier.weight(1f)
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(onClick = { navController.navigate("add") }) {
+                    Text("Agregar")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Row {
+                listOf("All", "Notes", "Tasks").forEach { option ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 16.dp)
+                    ) {
+                        RadioButton(
+                            selected = selectedFilter == option,
+                            onClick = { selectedFilter = option }
+                        )
+                        Text(option)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn {
+                items(
+                    notes.filter { note ->
+                        (selectedFilter == "All" ||
+                                (selectedFilter == "Notes" && !note.title.contains("Tarea", ignoreCase = true)) ||
+                                (selectedFilter == "Tasks" && note.title.contains("Tarea", ignoreCase = true))) &&
+                                note.title.contains(searchQuery, ignoreCase = true)
+                    }
+                ) { note ->
+                    NoteItemTitle(
+                        title = note.title,
+                        onClick = {
+                            val titleEncoded = Uri.encode(note.title)
+                            val descEncoded = Uri.encode(note.description)
+                            val imgEncoded = note.imageUri?.let { Uri.encode(it) } ?: ""
+                            navController.navigate("detail/$titleEncoded/$descEncoded/$imgEncoded")
+                        }
+                    )
+                }
             }
         }
     }
