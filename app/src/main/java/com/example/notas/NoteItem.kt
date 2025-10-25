@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
@@ -41,24 +42,17 @@ fun NoteItem(title: String,
     }
 }
 @Composable
-fun NoteItemTitle(title: String,
-
-                  onClick: () -> Unit
-) {
+fun NoteItemTitle(title: String, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clickable { onClick() },
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF424242))// Gris oscuro para cards
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-
-
-
+            Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White)
         }
     }
 }

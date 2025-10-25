@@ -17,5 +17,12 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         }
     }
 
+    fun deleteNote(note: Note) {
+        viewModelScope.launch {
+            repository.delete(note)
+        }
+    }
+
+
     fun getAllNotes(): Flow<List<Note>> = repository.getAllNotes()
 }
