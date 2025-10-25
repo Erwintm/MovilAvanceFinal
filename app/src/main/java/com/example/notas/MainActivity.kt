@@ -112,7 +112,7 @@ fun MainScreen(navController: NavController) {
                         selected = selectedFilter == option,
                         onClick = { selectedFilter = option }
                     )
-                    Text(option)
+                    Text(option,color = Color.White)
                 }
             }
         }
