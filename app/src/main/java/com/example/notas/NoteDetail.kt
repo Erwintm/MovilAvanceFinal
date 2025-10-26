@@ -34,8 +34,17 @@ fun NoteDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(if (idTipo == 1) "Detalle de Nota" else "Detalle de Tarea") })
-        }
+            TopAppBar(
+                title = {
+                    Text(
+                        if (idTipo == 1) "Detalle de Nota" else "Detalle de Tarea",
+                        color = Color.White
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212))
+            )
+        },
+        containerColor = Color(0xFF121212)
     ) { padding ->
         Column(
             modifier = Modifier
@@ -45,13 +54,13 @@ fun NoteDetailScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Título: $title", style = MaterialTheme.typography.titleLarge)
-            Text("Descripción: $description")
+            Text("Título: $title", style = MaterialTheme.typography.titleLarge, color = Color.White)
+            Text("Descripción: $description", color = Color.White)
 
             if (idTipo == 2) {
-                Text("Fecha límite: ${fechaLimite ?: "-"}")
-                Text("Hora: ${hora ?: "-"}")
-                Text("Estado: ${estado ?: "Pendiente"}")
+                Text("Fecha límite: ${fechaLimite ?: "-"}", color = Color.White)
+                Text("Hora: ${hora ?: "-"}", color = Color.White)
+                Text("Estado: ${estado ?: "Pendiente"}", color = Color.White)
             }
 
             if (!imageUri.isNullOrBlank()) {
@@ -67,7 +76,6 @@ fun NoteDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // Row con los 3 botones
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -108,4 +116,3 @@ fun NoteDetailScreen(
         }
     }
 }
-

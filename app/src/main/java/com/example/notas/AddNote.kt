@@ -56,15 +56,27 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        topBar = { CenterAlignedTopAppBar(title = { Text("Agregar nota/tarea") }) },
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Agregar nota/tarea", color = Color.White) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121212))
+            )
+        },
         bottomBar = {
-            BottomAppBar {
+            BottomAppBar(containerColor = Color(0xFF121212)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    OutlinedButton(onClick = onCancel) { Text("Cancelar") }
+                    OutlinedButton(
+                        onClick = onCancel,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
+
+
+                    ) { Text("Cancelar") }
+
                     Button(onClick = { launcher.launch("image/*") }) { Text("Agregar archivos") }
+
                     Button(
                         onClick = {
                             val tipo = if (seleccionarTipo == "Notes") 1 else 2
@@ -75,7 +87,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                                 idTipo = tipo,
                                 fechaLimite = if (tipo == 2) fechaLimite.ifBlank { null } else null,
                                 hora = if (tipo == 2) hora.ifBlank { null } else null,
-                                estado = if (tipo == 2) "Pendiente" else "Pendiente"
+                                estado = "Pendiente"
                             )
                             onAddNote(note)
                             title = ""
@@ -89,7 +101,8 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                     ) { Text("Agregar") }
                 }
             }
-        }
+        },
+        containerColor = Color(0xFF121212)
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -97,26 +110,44 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                 .padding(16.dp)
                 .verticalScroll(scrollState)
         ) {
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Título", color = Color.White) },
+                textStyle = TextStyle(color = Color.White),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF1E1E1E),
+                    unfocusedContainerColor = Color(0xFF1E1E1E),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = Color.White,
+                    unfocusedBorderColor = Color.Gray
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
             Spacer(Modifier.height(8.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
                     RadioButton(selected = seleccionarTipo == "Notes", onClick = { seleccionarTipo = "Notes" })
-                    Text("Notes", modifier = Modifier.padding(start = 4.dp))
+                    Text("Notes", modifier = Modifier.padding(start = 4.dp), color = Color.White)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = seleccionarTipo == "Tasks", onClick = { seleccionarTipo = "Tasks" })
-                    Text("Tasks", modifier = Modifier.padding(start = 4.dp))
+                    Text("Tasks", modifier = Modifier.padding(start = 4.dp), color = Color.White)
                 }
             }
+
             Spacer(Modifier.height(8.dp))
-            Text("Descripción", style = MaterialTheme.typography.labelLarge)
+            Text("Descripción", style = MaterialTheme.typography.labelLarge, color = Color.White)
             Spacer(Modifier.height(4.dp))
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 100.dp, max = 300.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, shape = MaterialTheme.shapes.medium)
+                    .border(1.dp, Color.Gray, shape = MaterialTheme.shapes.medium)
                     .padding(8.dp)
             ) {
                 BasicTextField(
@@ -126,24 +157,62 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                         coroutineScope.launch { delay(10); scrollState.scrollTo(scrollState.maxValue) }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    textStyle = TextStyle(color = Color.Black),
+                    textStyle = TextStyle(color = Color.White),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Default
                     ),
-                    decorationBox = { innerTextField -> if (description.isEmpty()) Text("Escribe la descripción aquí...", color = Color.Gray); innerTextField() }
+                    decorationBox = { innerTextField ->
+                        if (description.isEmpty()) Text("Escribe la descripción aquí...", color = Color.Gray)
+                        innerTextField()
+                    }
                 )
             }
 
             if (seleccionarTipo == "Tasks") {
-                OutlinedTextField(value = fechaLimite, onValueChange = { fechaLimite = it }, label = { Text("Fecha límite (ej. 2025-10-31)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = fechaLimite,
+                    onValueChange = { fechaLimite = it },
+                    label = { Text("Fecha límite (ej. 2025-10-31)", color = Color.White) },
+                    textStyle = TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF1E1E1E),
+                        unfocusedContainerColor = Color(0xFF1E1E1E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.Gray
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(value = hora, onValueChange = { hora = it }, label = { Text("Hora (ej. 14:30)") }, modifier = Modifier.fillMaxWidth())
+
+                OutlinedTextField(
+                    value = hora,
+                    onValueChange = { hora = it },
+                    label = { Text("Hora (ej. 14:30)", color = Color.White) },
+                    textStyle = TextStyle(color = Color.White),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color(0xFF1E1E1E),
+                        unfocusedContainerColor = Color(0xFF1E1E1E),
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color.White,
+                        unfocusedBorderColor = Color.Gray
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Spacer(Modifier.height(8.dp))
             }
 
             if (imageUri != null) {
-                AsyncImage(model = imageUri, contentDescription = null, modifier = Modifier.fillMaxWidth().height(180.dp).padding(vertical = 4.dp))
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth().height(180.dp).padding(vertical = 4.dp)
+                )
             }
         }
     }

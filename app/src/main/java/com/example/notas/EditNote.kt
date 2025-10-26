@@ -6,12 +6,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.notas.data.Note
 import com.example.notas.viewmodel.NoteViewModel
 import androidx.compose.ui.platform.LocalContext
-import com.example.notas.TodoApplication
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +35,15 @@ fun EditNoteScreen(
     val context = LocalContext.current.applicationContext as TodoApplication
     val viewModel = remember { NoteViewModel(context.repository) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Editar Nota/Tarea") }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Editar Nota/Tarea", color = Color.White) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212))
+            )
+        },
+        containerColor = Color(0xFF121212)
+    ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -43,13 +51,46 @@ fun EditNoteScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Título", color = Color.White) },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = LocalTextStyle.current.copy(color = Color.White)
+            )
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Descripción", color = Color.White) },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = LocalTextStyle.current.copy(color = Color.White)
+            )
 
             if (idTipo == 2) {
-                OutlinedTextField(value = fechaLimite, onValueChange = { fechaLimite = it }, label = { Text("Fecha límite") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = hora, onValueChange = { hora = it }, label = { Text("Hora") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = estado, onValueChange = { estado = it }, label = { Text("Estado") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = fechaLimite,
+                    onValueChange = { fechaLimite = it },
+                    label = { Text("Fecha límite", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(color = Color.White)
+                )
+
+                OutlinedTextField(
+                    value = hora,
+                    onValueChange = { hora = it },
+                    label = { Text("Hora", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(color = Color.White)
+                )
+
+                OutlinedTextField(
+                    value = estado,
+                    onValueChange = { estado = it },
+                    label = { Text("Estado", color = Color.White) },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(color = Color.White)
+                )
             }
 
             Button(
@@ -79,7 +120,9 @@ fun EditNoteScreen(
                 modifier = Modifier.fillMaxWidth()
             ) { Text("Guardar cambios") }
 
-            Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Cancelar") }
+            Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
+                Text("Cancelar")
+            }
         }
     }
 }
