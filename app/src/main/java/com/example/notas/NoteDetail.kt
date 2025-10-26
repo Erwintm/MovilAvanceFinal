@@ -20,7 +20,7 @@ fun NoteDetailScreen(
     noteId: Int,
     initialTitle: String,
     initialDescription: String,
-    imageUri: String?,
+    imageUri: String? = null,
     idTipo: Int = 1,
     fechaLimite: String? = null,
     hora: String? = null,
@@ -32,9 +32,16 @@ fun NoteDetailScreen(
     val context = LocalContext.current.applicationContext as TodoApplication
     val viewModel = remember { NoteViewModel(context.repository) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(if (idTipo == 1) "Detalle de Nota" else "Detalle de Tarea") }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text(if (idTipo == 1) "Detalle de Nota" else "Detalle de Tarea") })
+        }
+    ) { padding ->
         Column(
-            modifier = Modifier.padding(padding).padding(16.dp),
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -48,28 +55,57 @@ fun NoteDetailScreen(
             }
 
             if (!imageUri.isNullOrBlank()) {
-                AsyncImage(model = imageUri, contentDescription = "Imagen", modifier = Modifier.fillMaxWidth().height(180.dp).padding(vertical = 4.dp))
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = "Imagen",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .padding(vertical = 4.dp)
+                )
             }
 
             Spacer(Modifier.height(20.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = {
-                    navController.navigate("editNote/$noteId/$title/$description/${imageUri ?: ""}/$idTipo/${fechaLimite ?: ""}/${hora ?: ""}/${estado ?: ""}")
-                }) { Text("Editar") }
+            // Row con los 3 botones
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        navController.navigate(
+                            "editNote/$noteId/$title/$description/${imageUri ?: ""}/$idTipo/${fechaLimite ?: ""}/${hora ?: ""}/${estado ?: ""}"
+                        )
+                    }
+                ) { Text("Editar") }
 
                 Button(
                     onClick = {
                         viewModel.delete(
-                            Note(id = noteId, title = title, description = description, imageUri = imageUri, idTipo = idTipo, fechaLimite = fechaLimite, hora = hora, estado = estado)
+                            Note(
+                                id = noteId,
+                                title = title,
+                                description = description,
+                                imageUri = imageUri,
+                                idTipo = idTipo,
+                                fechaLimite = fechaLimite,
+                                hora = hora,
+                                estado = estado
+                            )
                         )
                         navController.popBackStack("main", inclusive = false)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
-                ) { Text("Eliminar", color = MaterialTheme.colorScheme.onError) }
-            }
+                ) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.onError)
+                }
 
-            Button(onClick = { navController.popBackStack("main", inclusive = false) }) { Text("Regresar") }
+                Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
+                    Text("Regresar")
+                }
+            }
         }
     }
 }
+
