@@ -1,11 +1,6 @@
 package com.example.notas.data
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -13,12 +8,18 @@ interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(note: Note)
 
-    @Query("SELECT * FROM notes ORDER BY id DESC")
-    fun getAllNotes(): Flow<List<Note>>
+    @Update
+    suspend fun updateNote(note: Note)
 
     @Delete
     suspend fun deleteNote(note: Note)
 
-    @Update
-    suspend fun updateNote(note: Note)
+    @Query("SELECT * FROM notes ORDER BY id DESC")
+    fun getAllNotes(): Flow<List<Note>>
+
+    @Query("SELECT * FROM notes WHERE idTipo = 2 ORDER BY fechaLimite ASC")
+    fun getAllTasks(): Flow<List<Note>>
+
+    @Query("SELECT * FROM notes WHERE idTipo = 1 ORDER BY id DESC")
+    fun getAllNotesOnly(): Flow<List<Note>>
 }

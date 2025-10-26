@@ -5,8 +5,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.notas.data.Note
@@ -20,7 +20,11 @@ fun NoteDetailScreen(
     noteId: Int,
     initialTitle: String,
     initialDescription: String,
-    imageUri: String?
+    imageUri: String?,
+    idTipo: Int = 1,
+    fechaLimite: String? = null,
+    hora: String? = null,
+    estado: String? = null
 ) {
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription) }
@@ -28,65 +32,44 @@ fun NoteDetailScreen(
     val context = LocalContext.current.applicationContext as TodoApplication
     val viewModel = remember { NoteViewModel(context.repository) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Detalle de Nota") })
-        }
-    ) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(if (idTipo == 1) "Detalle de Nota" else "Detalle de Tarea") }) }) { padding ->
         Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp),
+            modifier = Modifier.padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Título: $title", style = MaterialTheme.typography.titleLarge)
             Text("Descripción: $description")
 
-            if (imageUri != null) {
-                AsyncImage(
-                    model = imageUri,
-                    contentDescription = "Imagen de la nota",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .padding(vertical = 4.dp)
-                )
+            if (idTipo == 2) {
+                Text("Fecha límite: ${fechaLimite ?: "-"}")
+                Text("Hora: ${hora ?: "-"}")
+                Text("Estado: ${estado ?: "Pendiente"}")
+            }
+
+            if (!imageUri.isNullOrBlank()) {
+                AsyncImage(model = imageUri, contentDescription = "Imagen", modifier = Modifier.fillMaxWidth().height(180.dp).padding(vertical = 4.dp))
             }
 
             Spacer(Modifier.height(20.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(onClick = {
-                    // Ir a pantalla de edición
-                    navController.navigate(
-                        "editNote/$noteId/$title/$description/${imageUri ?: ""}"
-                    )
-                }) {
-                    Text("Editar")
-                }
+                    navController.navigate("editNote/$noteId/$title/$description/${imageUri ?: ""}/$idTipo/${fechaLimite ?: ""}/${hora ?: ""}/${estado ?: ""}")
+                }) { Text("Editar") }
 
                 Button(
                     onClick = {
-                        val noteToDelete = Note(
-                            id = noteId,
-                            title = title,
-                            description = description,
-                            imageUri = imageUri
+                        viewModel.delete(
+                            Note(id = noteId, title = title, description = description, imageUri = imageUri, idTipo = idTipo, fechaLimite = fechaLimite, hora = hora, estado = estado)
                         )
-
-                        viewModel.deleteNote(noteToDelete)
-                        navController.popBackStack()
+                        navController.popBackStack("main", inclusive = false)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
-                ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.onError)
-                }
+                ) { Text("Eliminar", color = MaterialTheme.colorScheme.onError) }
             }
 
-            Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
-                Text("Regresar")
-            }
+            Button(onClick = { navController.popBackStack("main", inclusive = false) }) { Text("Regresar") }
         }
     }
 }

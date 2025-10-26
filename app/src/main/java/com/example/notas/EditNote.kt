@@ -1,5 +1,6 @@
 package com.example.notas
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -10,6 +11,7 @@ import androidx.navigation.NavController
 import com.example.notas.data.Note
 import com.example.notas.viewmodel.NoteViewModel
 import androidx.compose.ui.platform.LocalContext
+import com.example.notas.TodoApplication
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -18,17 +20,22 @@ fun EditNoteScreen(
     noteId: Int,
     initialTitle: String,
     initialDescription: String,
-    imageUri: String?
+    imageUri: String?,
+    idTipo: Int = 1,
+    fechaLimiteInit: String? = null,
+    horaInit: String? = null,
+    estadoInit: String? = null
 ) {
     var title by remember { mutableStateOf(initialTitle) }
     var description by remember { mutableStateOf(initialDescription) }
+    var fechaLimite by remember { mutableStateOf(fechaLimiteInit ?: "") }
+    var hora by remember { mutableStateOf(horaInit ?: "") }
+    var estado by remember { mutableStateOf(estadoInit ?: "Pendiente") }
 
     val context = LocalContext.current.applicationContext as TodoApplication
     val viewModel = remember { NoteViewModel(context.repository) }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Editar Nota") }) }
-    ) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Editar Nota/Tarea") }) }) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -36,48 +43,43 @@ fun EditNoteScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Título") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Descripción") }, modifier = Modifier.fillMaxWidth())
 
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descripción") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            if (idTipo == 2) {
+                OutlinedTextField(value = fechaLimite, onValueChange = { fechaLimite = it }, label = { Text("Fecha límite") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = hora, onValueChange = { hora = it }, label = { Text("Hora") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = estado, onValueChange = { estado = it }, label = { Text("Estado") }, modifier = Modifier.fillMaxWidth())
+            }
 
             Button(
                 onClick = {
-                    // Crear el objeto actualizado
-                    val updatedNote = Note(
+                    val updated = Note(
                         id = noteId,
-                        title = title,
+                        title = title.ifBlank { "(sin título)" },
                         description = description,
-                        imageUri = imageUri
+                        imageUri = imageUri,
+                        idTipo = idTipo,
+                        fechaLimite = if (idTipo == 2) fechaLimite.ifBlank { null } else null,
+                        hora = if (idTipo == 2) hora.ifBlank { null } else null,
+                        estado = if (idTipo == 2) estado.ifBlank { "Pendiente" } else "Pendiente"
                     )
+                    viewModel.update(updated)
 
-                    // Actualizar en base de datos
-                    viewModel.updateNote(updatedNote)
+                    val titleEncoded = Uri.encode(updated.title)
+                    val descEncoded = Uri.encode(updated.description)
+                    val imgEncoded = updated.imageUri?.let { Uri.encode(it) } ?: ""
+                    val fechaEncoded = updated.fechaLimite?.let { Uri.encode(it) } ?: ""
+                    val horaEncoded = updated.hora?.let { Uri.encode(it) } ?: ""
+                    val estadoEncoded = updated.estado?.let { Uri.encode(it) } ?: "Pendiente"
 
-                    // Regresar al detalle con los valores nuevos
-                    navController.navigate(
-                        "noteDetail/${updatedNote.id}/${updatedNote.title}/${updatedNote.description}/${updatedNote.imageUri ?: ""}"
-                    ) {
-                        popUpTo("noteList") { inclusive = false }
-                    }
+                    navController.popBackStack()
+                    navController.navigate("noteDetail/${updated.id}/$titleEncoded/$descEncoded/$imgEncoded/$idTipo/$fechaEncoded/$horaEncoded/$estadoEncoded")
                 },
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Guardar cambios")
-            }
+            ) { Text("Guardar cambios") }
 
-            Button(onClick = { navController.popBackStack() }) {
-                Text("Cancelar")
-            }
+            Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) { Text("Cancelar") }
         }
     }
 }

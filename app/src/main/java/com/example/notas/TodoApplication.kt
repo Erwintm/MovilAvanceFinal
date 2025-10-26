@@ -15,7 +15,10 @@ class TodoApplication : Application() {
             applicationContext,
             NoteDatabase::class.java,
             "notes_db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+
         repository = NoteRepository(database.noteDao())
     }
 }
