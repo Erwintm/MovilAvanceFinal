@@ -44,6 +44,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
 
+
     NavHost(navController = navController, startDestination = "main") {
 
         composable("main") { MainScreen(navController) }
