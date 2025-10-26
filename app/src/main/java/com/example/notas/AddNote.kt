@@ -17,6 +17,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,7 +54,7 @@ fun AddNoteScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<String?>(null) }
-
+    var selectedType by remember { mutableStateOf("Notes") }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         imageUri = uri?.toString()
     }
@@ -103,7 +104,20 @@ fun AddNoteScreen(
                 label = { Text("Título") },
                 modifier = Modifier.fillMaxWidth()
             )
-
+            Row {
+                listOf("Notas", "Tareas").forEach { option ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(end = 16.dp)
+                    ) {
+                        RadioButton(
+                            selected = selectedType == option,
+                            onClick = { selectedType = option }
+                        )
+                        Text(option,color = Color.Black)
+                    }
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             Text("Descripción", style = MaterialTheme.typography.labelLarge)
