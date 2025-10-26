@@ -54,7 +54,7 @@ fun AddNoteScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<String?>(null) }
-    var selectedType by remember { mutableStateOf("Notes") }
+    var seleccionarTipo by remember { mutableStateOf("Notes") }
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         imageUri = uri?.toString()
     }
@@ -111,8 +111,8 @@ fun AddNoteScreen(
                         modifier = Modifier.padding(end = 16.dp)
                     ) {
                         RadioButton(
-                            selected = selectedType == option,
-                            onClick = { selectedType = option }
+                            selected = seleccionarTipo == option,
+                            onClick = { seleccionarTipo = option }
                         )
                         Text(option,color = Color.Black)
                     }
