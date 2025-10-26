@@ -30,9 +30,7 @@ fun NoteDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Detalle de Nota") }
-            )
+            TopAppBar(title = { Text("Detalle de Nota") })
         }
     ) { padding ->
         Column(
@@ -59,13 +57,17 @@ fun NoteDetailScreen(
             Spacer(Modifier.height(20.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = { /* Aquí puedes agregar función de editar si quieres */ }) {
+                Button(onClick = {
+                    // Ir a pantalla de edición
+                    navController.navigate(
+                        "editNote/$noteId/$title/$description/${imageUri ?: ""}"
+                    )
+                }) {
                     Text("Editar")
                 }
 
                 Button(
                     onClick = {
-                        // Crear la nota usando el ID para eliminar correctamente
                         val noteToDelete = Note(
                             id = noteId,
                             title = title,
@@ -73,10 +75,7 @@ fun NoteDetailScreen(
                             imageUri = imageUri
                         )
 
-                        // Llamar al ViewModel para eliminar la nota
                         viewModel.deleteNote(noteToDelete)
-
-                        // Regresar al listado principal
                         navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
@@ -85,7 +84,7 @@ fun NoteDetailScreen(
                 }
             }
 
-            Button(onClick = { navController.popBackStack() }) {
+            Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                 Text("Regresar")
             }
         }

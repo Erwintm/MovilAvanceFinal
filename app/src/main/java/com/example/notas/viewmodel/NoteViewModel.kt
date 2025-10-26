@@ -23,6 +23,13 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
         }
     }
 
+    fun updateNote(note: Note) {
+        viewModelScope.launch {
+            repository.updateNote(note)
+        }
+    }
+
+
 
     fun getAllNotes(): Flow<List<Note>> = repository.getAllNotes()
 }

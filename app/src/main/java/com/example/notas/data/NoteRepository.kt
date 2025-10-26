@@ -7,4 +7,8 @@ class NoteRepository(private val noteDao: NoteDao) {
 
     suspend fun delete(note: Note) = noteDao.deleteNote(note)
     fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
+
+    suspend fun updateNote(note: Note) {
+        noteDao.updateNote(note)
+    }
 }

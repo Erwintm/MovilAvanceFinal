@@ -16,10 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.notas.viewmodel.NoteViewModel
 
 class MainActivity : ComponentActivity() {
@@ -48,16 +50,46 @@ fun MyApp() {
             AddNote(navController)
         }
 
-        // Pantalla de detalle con noteId
+        // Pantalla de detalle
         composable(
-            route = "detail/{noteId}/{title}/{description}/{imageUri}"
+            route = "noteDetail/{noteId}/{title}/{description}/{imageUri}",
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.IntType },
+                navArgument("title") { type = NavType.StringType },
+                navArgument("description") { type = NavType.StringType },
+                navArgument("imageUri") { type = NavType.StringType }
+            )
         ) { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getString("noteId")?.toInt() ?: 0
+            val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
             val title = backStackEntry.arguments?.getString("title") ?: ""
             val description = backStackEntry.arguments?.getString("description") ?: ""
             val imageUri = backStackEntry.arguments?.getString("imageUri")
 
             NoteDetailScreen(
+                navController = navController,
+                noteId = noteId,
+                initialTitle = title,
+                initialDescription = description,
+                imageUri = imageUri
+            )
+        }
+
+        // Pantalla para editar una nota
+        composable(
+            route = "editNote/{noteId}/{title}/{description}/{imageUri}",
+            arguments = listOf(
+                navArgument("noteId") { type = NavType.IntType },
+                navArgument("title") { type = NavType.StringType },
+                navArgument("description") { type = NavType.StringType },
+                navArgument("imageUri") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+            val title = backStackEntry.arguments?.getString("title") ?: ""
+            val description = backStackEntry.arguments?.getString("description") ?: ""
+            val imageUri = backStackEntry.arguments?.getString("imageUri")
+
+            EditNoteScreen(
                 navController = navController,
                 noteId = noteId,
                 initialTitle = title,
@@ -81,7 +113,7 @@ fun MainScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0D1117)) // Fondo oscuro estilo chat
+            .background(Color(0xFF0D1117))
             .padding(16.dp)
     ) {
         Row(
@@ -91,7 +123,7 @@ fun MainScreen(navController: NavController) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text(text = "Buscar") },
+                label = { Text(text = "Buscar", color = Color.White) },
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -102,6 +134,7 @@ fun MainScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Filtros: All, Notes, Tasks
         Row {
             listOf("All", "Notes", "Tasks").forEach { option ->
                 Row(
@@ -112,13 +145,14 @@ fun MainScreen(navController: NavController) {
                         selected = selectedFilter == option,
                         onClick = { selectedFilter = option }
                     )
-                    Text(option,color = Color.White)
+                    Text(option, color = Color.White)
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Lista de notas
         LazyColumn {
             items(
                 notes.filter { note ->
@@ -134,7 +168,7 @@ fun MainScreen(navController: NavController) {
                         val titleEncoded = Uri.encode(note.title)
                         val descEncoded = Uri.encode(note.description)
                         val imgEncoded = note.imageUri?.let { Uri.encode(it) } ?: ""
-                        navController.navigate("detail/${note.id}/$titleEncoded/$descEncoded/$imgEncoded")
+                        navController.navigate("noteDetail/${note.id}/$titleEncoded/$descEncoded/$imgEncoded")
                     }
                 )
             }
