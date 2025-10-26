@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation("androidx.compose.material3:material3-window-size-class")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation(libs.androidx.core.ktx)
@@ -52,6 +53,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.material3.window.size.class1)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
