@@ -44,82 +44,130 @@ class MainActivity : ComponentActivity() {
 fun MyApp(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
 
+    when (windowSize) {
+        //Pantalla chica
+        WindowWidthSizeClass.Compact -> {
 
-    NavHost(navController = navController, startDestination = "main") {
+            NavHost(navController = navController, startDestination = "main") {
 
-        composable("main") { MainScreen(navController) }
+                composable("main") { MainScreen(navController) }
 
-        composable("add") { AddNote(navController) }
+                composable("add") { AddNote(navController) }
 
-        composable(
-            route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
-            arguments = listOf(
-                navArgument("noteId") { type = NavType.IntType },
-                navArgument("title") { type = NavType.StringType },
-                navArgument("description") { type = NavType.StringType },
-                navArgument("imageUri") { type = NavType.StringType },
-                navArgument("idTipo") { type = NavType.IntType },
-                navArgument("fecha") { type = NavType.StringType },
-                navArgument("hora") { type = NavType.StringType },
-                navArgument("estado") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
-            val title = backStackEntry.arguments?.getString("title") ?: ""
-            val description = backStackEntry.arguments?.getString("description") ?: ""
-            val imageUri = backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
-            val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
-            val fecha = backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
-            val hora = backStackEntry.arguments?.getString("hora")?.takeIf { it.isNotEmpty() }
-            val estado = backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
+                composable(
+                    route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
+                    arguments = listOf(
+                        navArgument("noteId") { type = NavType.IntType },
+                        navArgument("title") { type = NavType.StringType },
+                        navArgument("description") { type = NavType.StringType },
+                        navArgument("imageUri") { type = NavType.StringType },
+                        navArgument("idTipo") { type = NavType.IntType },
+                        navArgument("fecha") { type = NavType.StringType },
+                        navArgument("hora") { type = NavType.StringType },
+                        navArgument("estado") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+                    val title = backStackEntry.arguments?.getString("title") ?: ""
+                    val description = backStackEntry.arguments?.getString("description") ?: ""
+                    val imageUri =
+                        backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
+                    val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
+                    val fecha =
+                        backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
+                    val hora =
+                        backStackEntry.arguments?.getString("hora")?.takeIf { it.isNotEmpty() }
+                    val estado =
+                        backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
 
-            NoteDetailScreen(
-                navController,
-                noteId,
-                title,
-                description,
-                imageUri,
-                idTipo,
-                fecha,
-                hora,
-                estado
-            )
+                    NoteDetailScreen(
+                        navController,
+                        noteId,
+                        title,
+                        description,
+                        imageUri,
+                        idTipo,
+                        fecha,
+                        hora,
+                        estado
+                    )
+                }
+
+                composable(
+                    route = "editNote/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
+                    arguments = listOf(
+                        navArgument("noteId") { type = NavType.IntType },
+                        navArgument("title") { type = NavType.StringType },
+                        navArgument("description") { type = NavType.StringType },
+                        navArgument("imageUri") { type = NavType.StringType },
+                        navArgument("idTipo") { type = NavType.IntType },
+                        navArgument("fecha") { type = NavType.StringType },
+                        navArgument("hora") { type = NavType.StringType },
+                        navArgument("estado") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+                    val title = backStackEntry.arguments?.getString("title") ?: ""
+                    val description = backStackEntry.arguments?.getString("description") ?: ""
+                    val imageUri =
+                        backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
+                    val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
+                    val fecha =
+                        backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
+                    val hora =
+                        backStackEntry.arguments?.getString("hora")?.takeIf { it.isNotEmpty() }
+                    val estado =
+                        backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
+
+                    EditNoteScreen(
+                        navController,
+                        noteId,
+                        title,
+                        description,
+                        imageUri,
+                        idTipo,
+                        fecha,
+                        hora,
+                        estado
+                    )
+                }
+            }
+        }
+        //Pantalla mediana y grande
+        WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> {
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                color = Color(0xFF0D1117)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        NavHost(navController = navController, startDestination = "main") {
+                            composable("main") { MainScreen(navController) }
+                            composable("add") { AddNote(navController) }
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(Color(0xFF161B22))
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            "Vista ampliada (Tablet o PC)",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                }
+            }
         }
 
-        composable(
-            route = "editNote/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
-            arguments = listOf(
-                navArgument("noteId") { type = NavType.IntType },
-                navArgument("title") { type = NavType.StringType },
-                navArgument("description") { type = NavType.StringType },
-                navArgument("imageUri") { type = NavType.StringType },
-                navArgument("idTipo") { type = NavType.IntType },
-                navArgument("fecha") { type = NavType.StringType },
-                navArgument("hora") { type = NavType.StringType },
-                navArgument("estado") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
-            val title = backStackEntry.arguments?.getString("title") ?: ""
-            val description = backStackEntry.arguments?.getString("description") ?: ""
-            val imageUri = backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
-            val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
-            val fecha = backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
-            val hora = backStackEntry.arguments?.getString("hora")?.takeIf { it.isNotEmpty() }
-            val estado = backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
-
-            EditNoteScreen(
-                navController,
-                noteId,
-                title,
-                description,
-                imageUri,
-                idTipo,
-                fecha,
-                hora,
-                estado
-            )
-        }
     }
 }
 
