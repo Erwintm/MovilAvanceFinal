@@ -152,18 +152,7 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                         }
                     }
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(Color(0xFF161B22))
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            "Vista ampliada (Tablet o PC)",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
+
                 }
             }
         }
