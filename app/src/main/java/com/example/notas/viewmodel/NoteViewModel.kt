@@ -10,8 +10,7 @@ import kotlinx.coroutines.launch
 class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
     fun getAllNotes(): Flow<List<Note>> = repository.getAllNotes()
-    fun getAllTasks(): Flow<List<Note>> = repository.getAllTasks()
-    fun getAllNotesOnly(): Flow<List<Note>> = repository.getAllNotesOnly()
+
 
     fun insert(note: Note) = viewModelScope.launch { repository.insert(note) }
     fun update(note: Note) = viewModelScope.launch { repository.update(note) }
