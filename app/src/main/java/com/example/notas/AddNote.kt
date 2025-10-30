@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,7 +59,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Agregar nota/tarea", color = Color.White) },
+                title = { Text(stringResource(R.string.agregar), color = Color.White) },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121212))
             )
         },
@@ -73,7 +74,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
 
 
-                    ) { Text("Cancelar") }
+                    ) { Text(stringResource(R.string.cancelar)) }
 
                     Button(onClick = { launcher.launch("image/*") }) { Text("Agregar archivos") }
 
