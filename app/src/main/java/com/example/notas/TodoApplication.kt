@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Room
 import com.example.notas.data.NoteDatabase
 import com.example.notas.data.NoteRepository
+import com.example.notas.data.OfflineNoteRepository
 
 class TodoApplication : Application() {
     lateinit var database: NoteDatabase
@@ -19,6 +20,6 @@ class TodoApplication : Application() {
             .fallbackToDestructiveMigration()
             .build()
 
-        repository = NoteRepository(database.noteDao())
+        repository = OfflineNoteRepository(database.noteDao())
     }
 }
