@@ -76,7 +76,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
 
                     ) { Text(stringResource(R.string.cancelar)) }
 
-                    Button(onClick = { launcher.launch("image/*") }) { Text("Agregar archivos") }
+                    Button(onClick = { launcher.launch("image/*") }) { Text(stringResource(R.string.agregar_archivos)) }
 
                     Button(
                         onClick = {
@@ -99,7 +99,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                             seleccionarTipo = "Notes"
                         },
                         enabled = title.isNotBlank() && description.isNotBlank()
-                    ) { Text("Agregar") }
+                    ) { Text(stringResource(R.string.agregar)) }
                 }
             }
         },

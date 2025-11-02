@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="agregar">Agregar nota/tarea</string>
+    <string name="agregar_nota_tarea">Agregar nota/tarea</string>
     <string name="cancelar">Cancelar</string>
-    <string name="x">Agregar nota/tarea</string>
-    <string name="y">Agregar nota/tarea</string>
+    <string name="agregar_archivos">Agregar archivos</string>
+    <string name="agregar">Agregar</string>
     <string name="agregbar">Agregar nota/tarea</string>
 </resources>
