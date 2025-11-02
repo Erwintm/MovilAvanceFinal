@@ -283,11 +283,11 @@ fun MainScreen(navController: androidx.navigation.NavController) {
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                label = { Text("Buscar", color = Color.White) },
+                label = { Text(stringResource(R.string.buscar), color = Color.White) },
                 modifier = Modifier.weight(1f)
             )
             Spacer(Modifier.width(8.dp))
-            Button(onClick = { navController.navigate("add") }) { Text("Agregar") }
+            Button(onClick = { navController.navigate("add") }) { Text(stringResource(R.string.agregar)) }
         }
 
         Spacer(Modifier.height(16.dp))
