@@ -5,4 +5,11 @@
     <string name="agregar_archivos">Agregar archivos</string>
     <string name="agregar">Agregar</string>
     <string name="agregbar">Agregar nota/tarea</string>
+    <string name="detalles_tareas">Detalles de tareas y notas</string>
+    <string name="titulo">Título</string>
+    <string name="descripcion">Descripción</string>
+    <string name="fecha_límite">Fecha límite</string>
+    <string name="hora">Hora</string>
+    <string name="estado">Estado</string>
+
 </resources>

@@ -18,13 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
 import com.example.notas.viewmodel.NoteViewModel
 
@@ -228,6 +231,29 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                             }
                         }
                     }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(Color(0xFF161B22))
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            stringResource(R.string.detalles_tareas),
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        val context = LocalContext.current
+                        val app = context.applicationContext as TodoApplication
+                        val viewModel: NoteViewModel = viewModel(factory = NoteViewModelFactory(app.repository))
+                        val notes by viewModel.getAllNotes().collectAsState(initial = emptyList())
+
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(notes) { note ->
+                                NoteSummary(note)
+                            }
+                        }
+                    }
+
 
 
                 }
@@ -302,6 +328,24 @@ fun MainScreen(navController: androidx.navigation.NavController) {
         }
     }
 }
+@Composable
+fun NoteSummary(note: Note) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF161B22))
+            .padding(12.dp)
+    ) {
+        Text("${stringResource(R.string.titulo)}: ${note.title}", color = Color.White, style = MaterialTheme.typography.titleMedium)
+        Text("${stringResource(R.string.descripcion)}: ${note.description}", color = Color.LightGray)
+        if (note.idTipo == 2) {
+            Text("${stringResource(R.string.fecha_límite)}: ${note.fechaLimite ?: "-"}", color = Color.Gray)
+            Text("${stringResource(R.string.hora)}: ${note.hora ?: "-"}", color = Color.Gray)
+            Text("${stringResource(R.string.estado)}: ${note.estado ?: "Pendiente"}", color = Color.Gray)
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
