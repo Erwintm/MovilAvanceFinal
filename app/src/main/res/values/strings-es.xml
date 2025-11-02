@@ -11,5 +11,8 @@
     <string name="fecha_límite">Fecha límite</string>
     <string name="hora">Hora</string>
     <string name="estado">Estado</string>
+    <string name="buscar">Buscar</string>
+
+
 
 </resources>
