@@ -1,4 +1,24 @@
 <resources>
-    <string name="app_name">Notas</string>
-
+    <string name="agregar_nota_tarea">Add note/task</string>
+    <string name="cancelar">Cancel</string>
+    <string name="agregar_archivos">Add files</string>
+    <string name="agregar">Add</string>
+    <string name="agregbar">Add note/task</string>
+    <string name="detalles_tareas">Task and note details</string>
+    <string name="titulo">Title</string>
+    <string name="descripcion">Description</string>
+    <string name="fecha_límite">Deadline</string>
+    <string name="hora">Time</string>
+    <string name="estado">Status</string>
+    <string name="buscar">Search</string>
+    <string name="notas">Notes</string>
+    <string name="tareas">Tasks</string>
+    <string name="escriDes">Write the description here...</string>
+    <string name="fechaLit">Deadline (e.g. 2025-10-31)</string>
+    <string name="esHora">Time (e.g. 14:30)</string>
+    <string name="editarNT">Edit Note/Task</string>
+    <string name="guardar_cambios">Save changes</string>
+    <string name="editar">Edit</string>
+    <string name="eliminar">Delete</string>
+    <string name="regresar">Go back</string>
 </resources>
