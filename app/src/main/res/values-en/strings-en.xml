@@ -23,6 +23,7 @@
     <string name="editar">Edit</string>
     <string name="eliminar">Delete</string>
     <string name="regresar">Go back</string>
+    <string name="todas">All</string>
 
 
 </resources>

@@ -29,7 +29,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
-import com.example.notas.viewmodel.NoteViewModel
+import com.example.notas.viewmodel.MainViewModel // 👈 Usamos el nuevo MainViewModel
+// ⚠️ Eliminamos la importación de NoteViewModel
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -46,17 +47,23 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
+    val context = LocalContext.current.applicationContext as TodoApplication
+
+    // 1. INYECCIÓN DEL VIEWMODEL PRINCIPAL UNA SOLA VEZ
+    // Este ViewModel gestionará la lista de notas, filtros y búsqueda.
+    val mainViewModel: MainViewModel = viewModel(factory = NoteViewModelFactory(context.repository))
 
     when (windowSize) {
-        //Pantalla chica
+        // Pantalla chica
         WindowWidthSizeClass.Compact -> {
-
             NavHost(navController = navController, startDestination = "main") {
 
-                composable("main") { MainScreen(navController) }
+                // 2. MainScreen recibe el ViewModel
+                composable("main") { MainScreen(navController, mainViewModel) }
 
                 composable("add") { AddNote(navController) }
 
+                // ... (Rutas noteDetail y editNote se mantienen igual)
                 composable(
                     route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
                     arguments = listOf(
@@ -136,7 +143,7 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                 }
             }
         }
-        //Pantalla mediana y grande
+        // Pantalla mediana y grande
         WindowWidthSizeClass.Medium, WindowWidthSizeClass.Expanded -> {
             Surface(
                 modifier = Modifier
@@ -150,8 +157,10 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         NavHost(navController = navController, startDestination = "main") {
-                            composable("main") { MainScreen(navController) }
+                            // 2. MainScreen recibe el ViewModel
+                            composable("main") { MainScreen(navController, mainViewModel) }
                             composable("add") { AddNote(navController) }
+                            // ... (Rutas noteDetail y editNote se mantienen igual)
                             composable(
                                 route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
                                 arguments = listOf(
@@ -242,10 +251,8 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                             color = Color.White,
                             style = MaterialTheme.typography.titleLarge
                         )
-                        val context = LocalContext.current
-                        val app = context.applicationContext as TodoApplication
-                        val viewModel: NoteViewModel = viewModel(factory = NoteViewModelFactory(app.repository))
-                        val notes by viewModel.getAllNotes().collectAsState(initial = emptyList())
+                        // 3. LA SEGUNDA COLUMNA TAMBIÉN CONSUME EL ESTADO FILTRADO
+                        val notes by mainViewModel.filteredNotes.collectAsState()
 
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(notes) { note ->
@@ -253,25 +260,30 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                             }
                         }
                     }
-
-
-
                 }
             }
         }
-
     }
 }
 
+// ---
+
 @Composable
-fun MainScreen(navController: androidx.navigation.NavController) {
-    val context = LocalContext.current.applicationContext as TodoApplication
-    val viewModel = remember { NoteViewModel(context.repository) }
+fun MainScreen(
+    navController: androidx.navigation.NavController,
+    viewModel: MainViewModel // 👈 Ahora requiere el MainViewModel
+) {
+    // ⚠️ ELIMINAMOS TODA LA LÓGICA DE ESTADO LOCAL Y LA INYECCIÓN LOCAL
+    // 1. LEER EL ESTADO REACTIVO DEL VIEWMODEL
+    val searchQuery by viewModel.searchText.collectAsState()
+    val notes by viewModel.filteredNotes.collectAsState()
+    val selectedFilterId by viewModel.filterType.collectAsState()
 
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedFilter by remember { mutableStateOf("All") }
-
-    val notes by viewModel.getAllNotes().collectAsState(initial = emptyList())
+    val filterOptions = listOf(
+        Pair(stringResource(R.string.todas), 0),
+        Pair(stringResource(R.string.notas), 1),
+        Pair(stringResource(R.string.tareas), 2)
+    )
 
     Column(
         modifier = Modifier
@@ -282,7 +294,8 @@ fun MainScreen(navController: androidx.navigation.NavController) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { searchQuery = it },
+                // 2. LA UI LLAMA AL HANDLER DEL VIEWMODEL
+                onValueChange = viewModel::updateSearchText,
                 label = { Text(stringResource(R.string.buscar), color = Color.White) },
                 modifier = Modifier.weight(1f)
             )
@@ -292,11 +305,16 @@ fun MainScreen(navController: androidx.navigation.NavController) {
 
         Spacer(Modifier.height(16.dp))
 
+        // RADIO BUTTONS DE FILTRO
         Row {
-            listOf("All", "Notes", "Tasks").forEach { option ->
+            filterOptions.forEach { (optionText, optionId) ->
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
-                    RadioButton(selected = selectedFilter == option, onClick = { selectedFilter = option })
-                    Text(option, color = Color.White)
+                    RadioButton(
+                        selected = selectedFilterId == optionId,
+                        // 3. Handler del ViewModel
+                        onClick = { viewModel.updateFilterType(optionId) }
+                    )
+                    Text(optionText, color = Color.White)
                 }
             }
         }
@@ -304,17 +322,8 @@ fun MainScreen(navController: androidx.navigation.NavController) {
         Spacer(Modifier.height(16.dp))
 
         LazyColumn {
-            items(
-                notes.filter { note ->
-                    val tipoMatches = when (selectedFilter) {
-                        "All" -> true
-                        "Notes" -> note.idTipo == 1
-                        "Tasks" -> note.idTipo == 2
-                        else -> true
-                    }
-                    tipoMatches && note.title.contains(searchQuery, ignoreCase = true)
-                }
-            ) { note ->
+            // 4. SOLO CONSUMIMOS LA LISTA YA FILTRADA
+            items(notes) { note ->
                 NoteItemTitle(title = note.title) {
                     val titleEncoded = Uri.encode(note.title)
                     val descEncoded = Uri.encode(note.description)
