@@ -9,11 +9,10 @@ import com.example.notas.data.Note
 import com.example.notas.data.NoteRepository
 import kotlinx.coroutines.launch
 
-// Recibe el repositorio para acceder a la base de datos
+
 class EditNoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
-    // 1. VARIABLES DE ESTADO (UI State)
-    // Contienen la información de la nota que se está editando
+
     var noteId by mutableStateOf(0)
         private set
     var title by mutableStateOf("")
@@ -31,14 +30,10 @@ class EditNoteViewModel(private val repository: NoteRepository) : ViewModel() {
     var estado by mutableStateOf("Pendiente")
         private set
 
-    // 2. LÓGICA DE VALIDACIÓN
+
     val isEntryValid: Boolean
         get() = title.isNotBlank() && description.isNotBlank()
 
-
-    // 3. HANDLERS DE ESTADO (Llamados por la UI)
-
-    // 💡 FUNCIÓN CLAVE: Inicializa el estado con los datos de la nota existente
     fun initializeState(note: Note) {
         noteId = note.id
         title = note.title
@@ -57,16 +52,12 @@ class EditNoteViewModel(private val repository: NoteRepository) : ViewModel() {
     fun updateFechaLimite(newDate: String) { fechaLimite = newDate }
     fun updateHora(newTime: String) { hora = newTime }
     fun updateEstado(newStatus: String) { estado = newStatus }
-    fun updateImageUri(uri: String?) { imageUri = uri } // Soluciona el Platform declaration clash
+    fun updateImageUri(uri: String?) { imageUri = uri }
 
-
-    // 4. LÓGICA DE NEGOCIO
-
-    // Construye y devuelve el objeto Note actualizado, usando el estado actual del ViewModel.
     fun buildUpdatedNote(): Note {
         val tipo = if (seleccionarTipo == "Notes") 1 else 2
 
-        // El id es crucial para la actualización, por eso se inicializó al principio
+
         return Note(
             id = noteId,
             title = title.ifBlank { "(sin título)" },
@@ -74,20 +65,19 @@ class EditNoteViewModel(private val repository: NoteRepository) : ViewModel() {
             imageUri = imageUri,
             idTipo = tipo,
 
-            // Lógica condicional para tareas
+
             fechaLimite = if (tipo == 2) fechaLimite.ifBlank { null } else null,
             hora = if (tipo == 2) hora.ifBlank { null } else null,
             estado = if (tipo == 2) estado.ifBlank { "Pendiente" } else null
         )
     }
 
-    // Lógica principal: llama al repositorio para actualizar la base de datos
     fun updateNote() {
         if (isEntryValid) {
             val noteToUpdate = buildUpdatedNote()
 
             viewModelScope.launch {
-                repository.update(noteToUpdate) // Llama al método UPDATE del repositorio
+                repository.update(noteToUpdate)
             }
         }
     }

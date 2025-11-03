@@ -10,11 +10,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.notas.data.Note
-import com.example.notas.viewmodel.EditNoteViewModel // 👈 Importamos el nuevo ViewModel
+import com.example.notas.viewmodel.EditNoteViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel // 👈 Importación clave
-import androidx.compose.ui.text.TextStyle // Necesario para LocalTextStyle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.text.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,13 +31,10 @@ fun EditNoteScreen(
 ) {
     val context = LocalContext.current.applicationContext as TodoApplication
 
-    // 1. INYECTAR EL VIEWMODEL ESPECÍFICO DE LA PANTALLA
     val viewModel: EditNoteViewModel = viewModel(
         factory = NoteViewModelFactory(context.repository)
     )
 
-    // 2. EFECTO LATERAL: Inicializar el ViewModel con los datos de navegación
-    // Esto asegura que solo se haga una vez al inicio del ciclo de vida del ViewModel.
     LaunchedEffect(key1 = noteId) {
         val initialNote = Note(
             id = noteId,
@@ -69,13 +66,12 @@ fun EditNoteScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ⚠️ Se eliminaron todas las variables 'var xxx by remember { mutableStateOf(...) }'
-            // Ahora leemos directamente del ViewModel.
 
-            // CAMPO DE TÍTULO
+
+
             OutlinedTextField(
-                value = viewModel.title, // 👈 Leemos del ViewModel
-                onValueChange = viewModel::updateTitle, // 👈 Escribimos al ViewModel
+                value = viewModel.title,
+                onValueChange = viewModel::updateTitle,
                 label = { Text(stringResource(R.string.titulo), color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
@@ -90,8 +86,8 @@ fun EditNoteScreen(
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
             )
 
-            // CAMPOS DE TAREA (CONDICIONALES)
-            if (viewModel.seleccionarTipo == "Tasks") { // 👈 Condición basada en el estado del ViewModel
+
+            if (viewModel.seleccionarTipo == "Tasks") {
                 OutlinedTextField(
                     value = viewModel.fechaLimite,
                     onValueChange = viewModel::updateFechaLimite,
@@ -120,15 +116,12 @@ fun EditNoteScreen(
             // BOTÓN GUARDAR
             Button(
                 onClick = {
-                    // 3. EL VIEWMODEL HACE LA LÓGICA DE ACTUALIZACIÓN
+
                     viewModel.updateNote()
 
-                    // 4. Lógica de navegación (esto es compleja, la simplificamos)
-                    // PUSH: Si la navegación después de la edición es compleja, a veces es mejor
-                    // simplemente volver y dejar que la pantalla de detalles se actualice sola
-                    // con el Flow, pero seguiremos tu lógica original:
 
-                    val updatedNote = viewModel.buildUpdatedNote() // Función auxiliar (ver nota al final)
+
+                    val updatedNote = viewModel.buildUpdatedNote()
 
                     val titleEncoded = Uri.encode(updatedNote.title)
                     val descEncoded = Uri.encode(updatedNote.description)
@@ -140,7 +133,7 @@ fun EditNoteScreen(
                     navController.popBackStack()
                     navController.navigate("noteDetail/${updatedNote.id}/$titleEncoded/$descEncoded/$imgEncoded/${updatedNote.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded")
                 },
-                // 5. USAMOS LA VALIDACIÓN DEL VIEWMODEL
+
                 enabled = viewModel.isEntryValid,
                 modifier = Modifier.fillMaxWidth()
             ) { Text(stringResource(R.string.guardar_cambios)) }

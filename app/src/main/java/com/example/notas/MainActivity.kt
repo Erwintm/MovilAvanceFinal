@@ -29,8 +29,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
-import com.example.notas.viewmodel.MainViewModel // 👈 Usamos el nuevo MainViewModel
-// ⚠️ Eliminamos la importación de NoteViewModel
+import com.example.notas.viewmodel.MainViewModel
+
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -49,8 +49,7 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
     val context = LocalContext.current.applicationContext as TodoApplication
 
-    // 1. INYECCIÓN DEL VIEWMODEL PRINCIPAL UNA SOLA VEZ
-    // Este ViewModel gestionará la lista de notas, filtros y búsqueda.
+
     val mainViewModel: MainViewModel = viewModel(factory = NoteViewModelFactory(context.repository))
 
     when (windowSize) {
@@ -58,12 +57,12 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
         WindowWidthSizeClass.Compact -> {
             NavHost(navController = navController, startDestination = "main") {
 
-                // 2. MainScreen recibe el ViewModel
+
                 composable("main") { MainScreen(navController, mainViewModel) }
 
                 composable("add") { AddNote(navController) }
 
-                // ... (Rutas noteDetail y editNote se mantienen igual)
+
                 composable(
                     route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
                     arguments = listOf(
@@ -251,7 +250,7 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                             color = Color.White,
                             style = MaterialTheme.typography.titleLarge
                         )
-                        // 3. LA SEGUNDA COLUMNA TAMBIÉN CONSUME EL ESTADO FILTRADO
+
                         val notes by mainViewModel.filteredNotes.collectAsState()
 
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -271,10 +270,9 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
 @Composable
 fun MainScreen(
     navController: androidx.navigation.NavController,
-    viewModel: MainViewModel // 👈 Ahora requiere el MainViewModel
+    viewModel: MainViewModel
 ) {
-    // ⚠️ ELIMINAMOS TODA LA LÓGICA DE ESTADO LOCAL Y LA INYECCIÓN LOCAL
-    // 1. LEER EL ESTADO REACTIVO DEL VIEWMODEL
+
     val searchQuery by viewModel.searchText.collectAsState()
     val notes by viewModel.filteredNotes.collectAsState()
     val selectedFilterId by viewModel.filterType.collectAsState()
@@ -294,7 +292,7 @@ fun MainScreen(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = searchQuery,
-                // 2. LA UI LLAMA AL HANDLER DEL VIEWMODEL
+
                 onValueChange = viewModel::updateSearchText,
                 label = { Text(stringResource(R.string.buscar), color = Color.White) },
                 modifier = Modifier.weight(1f)
@@ -305,7 +303,7 @@ fun MainScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // RADIO BUTTONS DE FILTRO
+
         Row {
             filterOptions.forEach { (optionText, optionId) ->
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
@@ -322,7 +320,7 @@ fun MainScreen(
         Spacer(Modifier.height(16.dp))
 
         LazyColumn {
-            // 4. SOLO CONSUMIMOS LA LISTA YA FILTRADA
+
             items(notes) { note ->
                 NoteItemTitle(title = note.title) {
                     val titleEncoded = Uri.encode(note.title)

@@ -10,28 +10,46 @@ import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.notas.data.Note
-import com.example.notas.viewmodel.NoteViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.notas.viewmodel.NoteDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteDetailScreen(
     navController: NavController,
     noteId: Int,
-    initialTitle: String,
-    initialDescription: String,
+    title: String,
+    description: String,
     imageUri: String? = null,
     idTipo: Int = 1,
     fechaLimite: String? = null,
     hora: String? = null,
     estado: String? = null
 ) {
-    var title by remember { mutableStateOf(initialTitle) }
-    var description by remember { mutableStateOf(initialDescription) }
+
 
     val context = LocalContext.current.applicationContext as TodoApplication
-    val viewModel = remember { NoteViewModel(context.repository) }
+
+
+    val viewModel: NoteDetailViewModel = viewModel(
+        factory = NoteViewModelFactory(context.repository)
+    )
+
+
+    val currentNote = remember {
+        Note(
+            id = noteId,
+            title = title,
+            description = description,
+            imageUri = imageUri,
+            idTipo = idTipo,
+            fechaLimite = fechaLimite,
+            hora = hora,
+            estado = estado
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -55,18 +73,18 @@ fun NoteDetailScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("${stringResource(R.string.titulo)}: $title", style = MaterialTheme.typography.titleLarge, color = Color.White)
-            Text("Descripción: $description", color = Color.White)
+            Text("${stringResource(R.string.titulo)}: ${currentNote.title}", style = MaterialTheme.typography.titleLarge, color = Color.White)
+            Text("Descripción: ${currentNote.description}", color = Color.White)
 
             if (idTipo == 2) {
-                Text("${stringResource(R.string.fecha_límite)}: ${fechaLimite ?: "-"}", color = Color.White)
-                Text("${stringResource(R.string.hora)}: ${hora ?: "-"}", color = Color.White)
-                Text("${stringResource(R.string.estado)}: ${estado ?: "Pendiente"}", color = Color.White)
+                Text("${stringResource(R.string.fecha_límite)}: ${currentNote.fechaLimite ?: "-"}", color = Color.White)
+                Text("${stringResource(R.string.hora)}: ${currentNote.hora ?: "-"}", color = Color.White)
+                Text("${stringResource(R.string.estado)}: ${currentNote.estado ?: "Pendiente"}", color = Color.White)
             }
 
-            if (!imageUri.isNullOrBlank()) {
+            if (!currentNote.imageUri.isNullOrBlank()) {
                 AsyncImage(
-                    model = imageUri,
+                    model = currentNote.imageUri,
                     contentDescription = "Imagen",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -81,28 +99,22 @@ fun NoteDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Button(
                     onClick = {
+
                         navController.navigate(
-                            "editNote/$noteId/$title/$description/${imageUri ?: ""}/$idTipo/${fechaLimite ?: ""}/${hora ?: ""}/${estado ?: ""}"
+                            "editNote/${currentNote.id}/${currentNote.title}/${currentNote.description}/${currentNote.imageUri ?: ""}/${currentNote.idTipo}/${currentNote.fechaLimite ?: ""}/${currentNote.hora ?: ""}/${currentNote.estado ?: ""}"
                         )
                     }
                 ) { Text(stringResource(R.string.editar)) }
 
+
                 Button(
                     onClick = {
-                        viewModel.delete(
-                            Note(
-                                id = noteId,
-                                title = title,
-                                description = description,
-                                imageUri = imageUri,
-                                idTipo = idTipo,
-                                fechaLimite = fechaLimite,
-                                hora = hora,
-                                estado = estado
-                            )
-                        )
+
+                        viewModel.deleteNote(currentNote)
+
                         navController.popBackStack("main", inclusive = false)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
@@ -110,6 +122,7 @@ fun NoteDetailScreen(
                     Text(stringResource(R.string.eliminar), color = MaterialTheme.colorScheme.onError)
                 }
 
+                // Botón Regresar
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                     Text(stringResource(R.string.regresar))
                 }
