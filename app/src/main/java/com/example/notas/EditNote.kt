@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import com.example.notas.data.Note
 import com.example.notas.viewmodel.NoteViewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +39,7 @@ fun EditNoteScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Editar Nota/Tarea", color = Color.White) },
+                title = { Text(stringResource(R.string.editarNT), color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212))
             )
         },
@@ -54,7 +55,7 @@ fun EditNoteScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Título", color = Color.White) },
+                label = { Text(stringResource(R.string.titulo), color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
             )
@@ -62,7 +63,7 @@ fun EditNoteScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Descripción", color = Color.White) },
+                label = { Text(stringResource(R.string.descripcion), color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
             )
@@ -71,7 +72,7 @@ fun EditNoteScreen(
                 OutlinedTextField(
                     value = fechaLimite,
                     onValueChange = { fechaLimite = it },
-                    label = { Text("Fecha límite", color = Color.White) },
+                    label = { Text(stringResource(R.string.fecha_límite), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = Color.White)
                 )
@@ -79,7 +80,7 @@ fun EditNoteScreen(
                 OutlinedTextField(
                     value = hora,
                     onValueChange = { hora = it },
-                    label = { Text("Hora", color = Color.White) },
+                    label = { Text(stringResource(R.string.hora), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = Color.White)
                 )
@@ -87,7 +88,7 @@ fun EditNoteScreen(
                 OutlinedTextField(
                     value = estado,
                     onValueChange = { estado = it },
-                    label = { Text("Estado", color = Color.White) },
+                    label = { Text(stringResource(R.string.estado), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = Color.White)
                 )
@@ -118,10 +119,10 @@ fun EditNoteScreen(
                     navController.navigate("noteDetail/${updated.id}/$titleEncoded/$descEncoded/$imgEncoded/$idTipo/$fechaEncoded/$horaEncoded/$estadoEncoded")
                 },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Guardar cambios") }
+            ) { Text(stringResource(R.string.guardar_cambios)) }
 
             Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancelar))
             }
         }
     }

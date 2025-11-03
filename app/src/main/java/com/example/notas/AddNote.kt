@@ -114,7 +114,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
-                label = { Text("Título", color = Color.White) },
+                label = { Text(stringResource(R.string.titulo), color = Color.White) },
                 textStyle = TextStyle(color = Color.White),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF1E1E1E),
@@ -132,16 +132,16 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
                     RadioButton(selected = seleccionarTipo == "Notes", onClick = { seleccionarTipo = "Notes" })
-                    Text("Notes", modifier = Modifier.padding(start = 4.dp), color = Color.White)
+                    Text(stringResource(R.string.notas), modifier = Modifier.padding(start = 4.dp), color = Color.White)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = seleccionarTipo == "Tasks", onClick = { seleccionarTipo = "Tasks" })
-                    Text("Tasks", modifier = Modifier.padding(start = 4.dp), color = Color.White)
+                    Text(stringResource(R.string.tareas), modifier = Modifier.padding(start = 4.dp), color = Color.White)
                 }
             }
 
             Spacer(Modifier.height(8.dp))
-            Text("Descripción", style = MaterialTheme.typography.labelLarge, color = Color.White)
+            Text(stringResource(R.string.descripcion), style = MaterialTheme.typography.labelLarge, color = Color.White)
             Spacer(Modifier.height(4.dp))
 
             Box(
@@ -164,7 +164,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                         imeAction = ImeAction.Default
                     ),
                     decorationBox = { innerTextField ->
-                        if (description.isEmpty()) Text("Escribe la descripción aquí...", color = Color.Gray)
+                        if (description.isEmpty()) Text(stringResource(R.string.escriDes), color = Color.Gray)
                         innerTextField()
                     }
                 )
@@ -174,7 +174,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                 OutlinedTextField(
                     value = fechaLimite,
                     onValueChange = { fechaLimite = it },
-                    label = { Text("Fecha límite (ej. 2025-10-31)", color = Color.White) },
+                    label = { Text(stringResource(R.string.fechaLit), color = Color.White) },
                     textStyle = TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1E1E),
@@ -192,7 +192,7 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                 OutlinedTextField(
                     value = hora,
                     onValueChange = { hora = it },
-                    label = { Text("Hora (ej. 14:30)", color = Color.White) },
+                    label = { Text(stringResource(R.string.esHora), color = Color.White) },
                     textStyle = TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1E1E),

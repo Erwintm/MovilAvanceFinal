@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import com.example.notas.data.Note
 import com.example.notas.viewmodel.NoteViewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,13 +55,13 @@ fun NoteDetailScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Título: $title", style = MaterialTheme.typography.titleLarge, color = Color.White)
+            Text("${stringResource(R.string.titulo)}: $title", style = MaterialTheme.typography.titleLarge, color = Color.White)
             Text("Descripción: $description", color = Color.White)
 
             if (idTipo == 2) {
-                Text("Fecha límite: ${fechaLimite ?: "-"}", color = Color.White)
-                Text("Hora: ${hora ?: "-"}", color = Color.White)
-                Text("Estado: ${estado ?: "Pendiente"}", color = Color.White)
+                Text("${stringResource(R.string.fecha_límite)}: ${fechaLimite ?: "-"}", color = Color.White)
+                Text("${stringResource(R.string.hora)}: ${hora ?: "-"}", color = Color.White)
+                Text("${stringResource(R.string.estado)}: ${estado ?: "Pendiente"}", color = Color.White)
             }
 
             if (!imageUri.isNullOrBlank()) {
@@ -86,7 +87,7 @@ fun NoteDetailScreen(
                             "editNote/$noteId/$title/$description/${imageUri ?: ""}/$idTipo/${fechaLimite ?: ""}/${hora ?: ""}/${estado ?: ""}"
                         )
                     }
-                ) { Text("Editar") }
+                ) { Text(stringResource(R.string.editar)) }
 
                 Button(
                     onClick = {
@@ -106,11 +107,11 @@ fun NoteDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.onError)
+                    Text(stringResource(R.string.eliminar), color = MaterialTheme.colorScheme.onError)
                 }
 
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
-                    Text("Regresar")
+                    Text(stringResource(R.string.regresar))
                 }
             }
         }

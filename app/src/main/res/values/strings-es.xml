@@ -12,7 +12,14 @@
     <string name="hora">Hora</string>
     <string name="estado">Estado</string>
     <string name="buscar">Buscar</string>
-
-
-
+    <string name="notas">Notas</string>
+    <string name="tareas">Tareas</string>
+    <string name="escriDes">Escribe la descripción aquí...</string>
+    <string name="fechaLit">Fecha límite (ej. 2025-10-31)</string>
+    <string name="esHora">Hora (ej. 14:30)</string>
+    <string name="editarNT">Editar Nota/Tarea</string>
+    <string name="guardar_cambios">Guardar cambios</string>
+    <string name="editar">Editar</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="regresar">Regresar</string>
 </resources>
