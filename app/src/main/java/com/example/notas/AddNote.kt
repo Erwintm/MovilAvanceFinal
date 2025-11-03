@@ -18,39 +18,46 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel // 👈 Importación CLAVE
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.notas.data.Note
-import com.example.notas.viewmodel.NoteViewModel
+// Importamos el nuevo AddNoteViewModel en lugar del NoteViewModel general
+import com.example.notas.viewmodel.AddNoteViewModel
+import com.example.notas.NoteViewModelFactory // Importamos la Factory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun AddNote(navController: NavController) {
     val context = LocalContext.current.applicationContext as TodoApplication
-    val viewModel = remember { NoteViewModel(context.repository) }
+
+    // 1. INYECTAR EL VIEWMODEL ESPECÍFICO DE LA PANTALLA
+    // Usamos la Factory para crear el AddNoteViewModel con el repositorio
+    val viewModel: AddNoteViewModel = viewModel(
+        factory = NoteViewModelFactory(context.repository)
+    )
 
     AddNoteScreen(
-        onAddNote = { note ->
-            viewModel.insert(note)
-            navController.popBackStack()
-        },
+        viewModel = viewModel, // Pasamos el ViewModel a la UI
+        onSaveComplete = { navController.popBackStack() }, // Navegación después de guardar
         onCancel = { navController.popBackStack() }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<String?>(null) }
-    var seleccionarTipo by remember { mutableStateOf("Notes") }
-    var fechaLimite by remember { mutableStateOf("") }
-    var hora by remember { mutableStateOf("") }
+fun AddNoteScreen(
+    viewModel: AddNoteViewModel, // 👈 Ahora recibimos el ViewModel
+    onSaveComplete: () -> Unit,
+    onCancel: () -> Unit
+) {
+    // ⚠️ Se eliminaron todas las variables 'var title by remember { mutableStateOf("") }'.
+    // El estado ahora reside en el ViewModel.
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        imageUri = uri?.toString()
+        // La UI llama al handler del ViewModel para actualizar el estado
+        viewModel.updateImageUri(uri?.toString())
     }
 
     val scrollState = rememberScrollState()
@@ -72,33 +79,18 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                     OutlinedButton(
                         onClick = onCancel,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
-
-
                     ) { Text(stringResource(R.string.cancelar)) }
 
                     Button(onClick = { launcher.launch("image/*") }) { Text(stringResource(R.string.agregar_archivos)) }
 
                     Button(
                         onClick = {
-                            val tipo = if (seleccionarTipo == "Notes") 1 else 2
-                            val note = Note(
-                                title = title.ifBlank { "(sin título)" },
-                                description = description,
-                                imageUri = imageUri,
-                                idTipo = tipo,
-                                fechaLimite = if (tipo == 2) fechaLimite.ifBlank { null } else null,
-                                hora = if (tipo == 2) hora.ifBlank { null } else null,
-                                estado = "Pendiente"
-                            )
-                            onAddNote(note)
-                            title = ""
-                            description = ""
-                            imageUri = null
-                            fechaLimite = ""
-                            hora = ""
-                            seleccionarTipo = "Notes"
+                            // 2. EL VIEWMODEL HACE TODA LA LÓGICA DE CONSTRUCCIÓN Y GUARDADO
+                            viewModel.saveNote()
+                            onSaveComplete()
                         },
-                        enabled = title.isNotBlank() && description.isNotBlank()
+                        // 3. LA VALIDACIÓN TAMBIÉN VIENE DEL VIEWMODEL
+                        enabled = viewModel.isEntryValid
                     ) { Text(stringResource(R.string.agregar)) }
                 }
             }
@@ -111,10 +103,11 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                 .padding(16.dp)
                 .verticalScroll(scrollState)
         ) {
+            // CAMPO DE TÍTULO
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text(stringResource(R.string.titulo), color = Color.White) },
+                value = viewModel.title, // 👈 Leemos del ViewModel
+                onValueChange = viewModel::updateTitle, // 👈 Escribimos al ViewModel
+                label = { Text(stringResource(R.string.titulo), color = Color.White) }, // Uso del nuevo string
                 textStyle = TextStyle(color = Color.White),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF1E1E1E),
@@ -129,21 +122,29 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
 
             Spacer(Modifier.height(8.dp))
 
+            // RADIO BUTTONS
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
-                    RadioButton(selected = seleccionarTipo == "Notes", onClick = { seleccionarTipo = "Notes" })
-                    Text(stringResource(R.string.notas), modifier = Modifier.padding(start = 4.dp), color = Color.White)
+                    RadioButton(
+                        selected = viewModel.seleccionarTipo == "Notes",
+                        onClick = { viewModel.updateTipo("Notes") } // 👈 Evento al ViewModel
+                    )
+                    Text(stringResource(R.string.notas), modifier = Modifier.padding(start = 4.dp), color = Color.White) // Uso del nuevo string
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = seleccionarTipo == "Tasks", onClick = { seleccionarTipo = "Tasks" })
-                    Text(stringResource(R.string.tareas), modifier = Modifier.padding(start = 4.dp), color = Color.White)
+                    RadioButton(
+                        selected = viewModel.seleccionarTipo == "Tasks",
+                        onClick = { viewModel.updateTipo("Tasks") } // 👈 Evento al ViewModel
+                    )
+                    Text(stringResource(R.string.tareas), modifier = Modifier.padding(start = 4.dp), color = Color.White) // Uso del nuevo string
                 }
             }
 
             Spacer(Modifier.height(8.dp))
-            Text(stringResource(R.string.descripcion), style = MaterialTheme.typography.labelLarge, color = Color.White)
+            Text(stringResource(R.string.descripcion), style = MaterialTheme.typography.labelLarge, color = Color.White) // Uso del nuevo string
             Spacer(Modifier.height(4.dp))
 
+            // CAMPO DE DESCRIPCIÓN
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -152,9 +153,9 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                     .padding(8.dp)
             ) {
                 BasicTextField(
-                    value = description,
+                    value = viewModel.description, // 👈 Leemos del ViewModel
                     onValueChange = {
-                        description = it
+                        viewModel.updateDescription(it) // 👈 Escribimos al ViewModel
                         coroutineScope.launch { delay(10); scrollState.scrollTo(scrollState.maxValue) }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -164,17 +165,18 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                         imeAction = ImeAction.Default
                     ),
                     decorationBox = { innerTextField ->
-                        if (description.isEmpty()) Text(stringResource(R.string.escriDes), color = Color.Gray)
+                        if (viewModel.description.isEmpty()) Text(stringResource(R.string.escriDes), color = Color.Gray) // Uso del nuevo string
                         innerTextField()
                     }
                 )
             }
 
-            if (seleccionarTipo == "Tasks") {
+            // CAMPOS DE TAREA (CONDICIONALES)
+            if (viewModel.seleccionarTipo == "Tasks") {
                 OutlinedTextField(
-                    value = fechaLimite,
-                    onValueChange = { fechaLimite = it },
-                    label = { Text(stringResource(R.string.fechaLit), color = Color.White) },
+                    value = viewModel.fechaLimite,
+                    onValueChange = viewModel::updateFechaLimite, // 👈 Leemos/Escribimos al ViewModel
+                    label = { Text(stringResource(R.string.fechaLit), color = Color.White) }, // Uso del nuevo string
                     textStyle = TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1E1E),
@@ -190,9 +192,9 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
 
                 OutlinedTextField(
-                    value = hora,
-                    onValueChange = { hora = it },
-                    label = { Text(stringResource(R.string.esHora), color = Color.White) },
+                    value = viewModel.hora,
+                    onValueChange = viewModel::updateHora, // 👈 Leemos/Escribimos al ViewModel
+                    label = { Text(stringResource(R.string.esHora), color = Color.White) }, // Uso del nuevo string
                     textStyle = TextStyle(color = Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF1E1E1E),
@@ -208,9 +210,10 @@ fun AddNoteScreen(onAddNote: (Note) -> Unit, onCancel: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
             }
 
-            if (imageUri != null) {
+            // IMAGEN
+            if (viewModel.imageUri != null) {
                 AsyncImage(
-                    model = imageUri,
+                    model = viewModel.imageUri,
                     contentDescription = null,
                     modifier = Modifier.fillMaxWidth().height(180.dp).padding(vertical = 4.dp)
                 )

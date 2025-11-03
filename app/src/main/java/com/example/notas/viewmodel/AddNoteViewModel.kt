@@ -70,7 +70,7 @@ class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
         hora = newTime
     }
 
-    fun setImageUri(uri: String?) {
+    fun updateImageUri(uri: String?) {
         imageUri = uri
     }
 

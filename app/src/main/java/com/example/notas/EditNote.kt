@@ -10,9 +10,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.notas.data.Note
-import com.example.notas.viewmodel.NoteViewModel
+import com.example.notas.viewmodel.EditNoteViewModel // 👈 Importamos el nuevo ViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.viewmodel.compose.viewModel // 👈 Importación clave
+import androidx.compose.ui.text.TextStyle // Necesario para LocalTextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,14 +29,29 @@ fun EditNoteScreen(
     horaInit: String? = null,
     estadoInit: String? = null
 ) {
-    var title by remember { mutableStateOf(initialTitle) }
-    var description by remember { mutableStateOf(initialDescription) }
-    var fechaLimite by remember { mutableStateOf(fechaLimiteInit ?: "") }
-    var hora by remember { mutableStateOf(horaInit ?: "") }
-    var estado by remember { mutableStateOf(estadoInit ?: "Pendiente") }
-
     val context = LocalContext.current.applicationContext as TodoApplication
-    val viewModel = remember { NoteViewModel(context.repository) }
+
+    // 1. INYECTAR EL VIEWMODEL ESPECÍFICO DE LA PANTALLA
+    val viewModel: EditNoteViewModel = viewModel(
+        factory = NoteViewModelFactory(context.repository)
+    )
+
+    // 2. EFECTO LATERAL: Inicializar el ViewModel con los datos de navegación
+    // Esto asegura que solo se haga una vez al inicio del ciclo de vida del ViewModel.
+    LaunchedEffect(key1 = noteId) {
+        val initialNote = Note(
+            id = noteId,
+            title = initialTitle,
+            description = initialDescription,
+            imageUri = imageUri,
+            idTipo = idTipo,
+            fechaLimite = fechaLimiteInit,
+            hora = horaInit,
+            estado = estadoInit
+        )
+        viewModel.initializeState(initialNote)
+    }
+
 
     Scaffold(
         topBar = {
@@ -52,75 +69,83 @@ fun EditNoteScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // ⚠️ Se eliminaron todas las variables 'var xxx by remember { mutableStateOf(...) }'
+            // Ahora leemos directamente del ViewModel.
+
+            // CAMPO DE TÍTULO
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
+                value = viewModel.title, // 👈 Leemos del ViewModel
+                onValueChange = viewModel::updateTitle, // 👈 Escribimos al ViewModel
                 label = { Text(stringResource(R.string.titulo), color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
             )
 
+            // CAMPO DE DESCRIPCIÓN
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
+                value = viewModel.description,
+                onValueChange = viewModel::updateDescription,
                 label = { Text(stringResource(R.string.descripcion), color = Color.White) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
             )
 
-            if (idTipo == 2) {
+            // CAMPOS DE TAREA (CONDICIONALES)
+            if (viewModel.seleccionarTipo == "Tasks") { // 👈 Condición basada en el estado del ViewModel
                 OutlinedTextField(
-                    value = fechaLimite,
-                    onValueChange = { fechaLimite = it },
+                    value = viewModel.fechaLimite,
+                    onValueChange = viewModel::updateFechaLimite,
                     label = { Text(stringResource(R.string.fecha_límite), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = Color.White)
                 )
 
                 OutlinedTextField(
-                    value = hora,
-                    onValueChange = { hora = it },
+                    value = viewModel.hora,
+                    onValueChange = viewModel::updateHora,
                     label = { Text(stringResource(R.string.hora), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = Color.White)
                 )
 
                 OutlinedTextField(
-                    value = estado,
-                    onValueChange = { estado = it },
+                    value = viewModel.estado,
+                    onValueChange = viewModel::updateEstado,
                     label = { Text(stringResource(R.string.estado), color = Color.White) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(color = Color.White)
                 )
             }
 
+            // BOTÓN GUARDAR
             Button(
                 onClick = {
-                    val updated = Note(
-                        id = noteId,
-                        title = title.ifBlank { "(sin título)" },
-                        description = description,
-                        imageUri = imageUri,
-                        idTipo = idTipo,
-                        fechaLimite = if (idTipo == 2) fechaLimite.ifBlank { null } else null,
-                        hora = if (idTipo == 2) hora.ifBlank { null } else null,
-                        estado = if (idTipo == 2) estado.ifBlank { "Pendiente" } else "Pendiente"
-                    )
-                    viewModel.update(updated)
+                    // 3. EL VIEWMODEL HACE LA LÓGICA DE ACTUALIZACIÓN
+                    viewModel.updateNote()
 
-                    val titleEncoded = Uri.encode(updated.title)
-                    val descEncoded = Uri.encode(updated.description)
-                    val imgEncoded = updated.imageUri?.let { Uri.encode(it) } ?: ""
-                    val fechaEncoded = updated.fechaLimite?.let { Uri.encode(it) } ?: ""
-                    val horaEncoded = updated.hora?.let { Uri.encode(it) } ?: ""
-                    val estadoEncoded = updated.estado?.let { Uri.encode(it) } ?: "Pendiente"
+                    // 4. Lógica de navegación (esto es compleja, la simplificamos)
+                    // PUSH: Si la navegación después de la edición es compleja, a veces es mejor
+                    // simplemente volver y dejar que la pantalla de detalles se actualice sola
+                    // con el Flow, pero seguiremos tu lógica original:
+
+                    val updatedNote = viewModel.buildUpdatedNote() // Función auxiliar (ver nota al final)
+
+                    val titleEncoded = Uri.encode(updatedNote.title)
+                    val descEncoded = Uri.encode(updatedNote.description)
+                    val imgEncoded = updatedNote.imageUri?.let { Uri.encode(it) } ?: ""
+                    val fechaEncoded = updatedNote.fechaLimite?.let { Uri.encode(it) } ?: ""
+                    val horaEncoded = updatedNote.hora?.let { Uri.encode(it) } ?: ""
+                    val estadoEncoded = updatedNote.estado?.let { Uri.encode(it) } ?: "Pendiente"
 
                     navController.popBackStack()
-                    navController.navigate("noteDetail/${updated.id}/$titleEncoded/$descEncoded/$imgEncoded/$idTipo/$fechaEncoded/$horaEncoded/$estadoEncoded")
+                    navController.navigate("noteDetail/${updatedNote.id}/$titleEncoded/$descEncoded/$imgEncoded/${updatedNote.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded")
                 },
+                // 5. USAMOS LA VALIDACIÓN DEL VIEWMODEL
+                enabled = viewModel.isEntryValid,
                 modifier = Modifier.fillMaxWidth()
             ) { Text(stringResource(R.string.guardar_cambios)) }
 
+            // BOTÓN CANCELAR
             Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.cancelar))
             }
