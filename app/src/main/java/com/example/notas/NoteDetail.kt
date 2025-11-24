@@ -37,7 +37,7 @@ fun NoteDetailScreen(
         factory = NoteViewModelFactory(context.repository)
     )
 
-
+//econstrucción del Objeto Note (Estado)
     val currentNote = remember {
         Note(
             id = noteId,
@@ -102,7 +102,7 @@ fun NoteDetailScreen(
 
                 Button(
                     onClick = {
-
+                    // Navega a la ruta de edición, volviendo a pasar TODOS los dato
                         navController.navigate(
                             "editNote/${currentNote.id}/${currentNote.title}/${currentNote.description}/${currentNote.imageUri ?: ""}/${currentNote.idTipo}/${currentNote.fechaLimite ?: ""}/${currentNote.hora ?: ""}/${currentNote.estado ?: ""}"
                         )

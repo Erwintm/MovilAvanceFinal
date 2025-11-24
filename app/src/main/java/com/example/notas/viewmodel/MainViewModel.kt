@@ -14,16 +14,22 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val repository: NoteRepository) : ViewModel() {
 
-
+//
     private val _allNotesFlow = repository.getAllNotes()
 
-
+    //Almacena el texto ingresado en el OutlinedTextField de la MainScreen.
     private val _searchText = MutableStateFlow("")
+
+    //Permite que la UI escuche los cambios en el texto de búsqueda (.collectAsState()).
     val searchText: StateFlow<String> = _searchText
 
-
+//Almacena el ID del filtro seleccionado (0=Todas, 1=Notas, 2=Tareas) desde los RadioButton.
     private val _filterType = MutableStateFlow(0)
+
+    //Permite que la UI escuche qué filtro está activo.
     val filterType: StateFlow<Int> = _filterType
+
+    //Logica
 
 
     val filteredNotes: StateFlow<List<Note>> = combine(
@@ -32,7 +38,7 @@ class MainViewModel(private val repository: NoteRepository) : ViewModel() {
         _filterType
     ) { notes, query, filterId ->
 
-
+// A. Filtrado por Tipo (Radio Button)
 
         val filteredByType = when (filterId) {
             1 -> notes.filter { it.idTipo == 1 }
@@ -40,7 +46,7 @@ class MainViewModel(private val repository: NoteRepository) : ViewModel() {
             else -> notes
         }
 
-
+// B. Filtrado por Búsqueda (TextField)
         val trimmedQuery = query.trim()
         if (trimmedQuery.isBlank()) {
             filteredByType
@@ -57,15 +63,20 @@ class MainViewModel(private val repository: NoteRepository) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+//Estos son los métodos que la Vista (UI) llama para actualizar el estado del ViewModel (los que vimos en MainScreen).
 
+    //Llamado por el OutlinedTextField. Simplemente actualiza el valor de _searchText,
+    // lo que a su vez dispara la función combine para recalcular filteredNotes.
     fun updateSearchText(text: String) {
         _searchText.value = text
     }
-
+//Llamado por los RadioButton. Actualiza _filterType, lo que también dispara la función combine.
     fun updateFilterType(type: Int) {
         _filterType.value = type
     }
 
+    //Llamado desde la pantalla de detalle (NoteDetailScreen).
+    // Inicia una corrutina (viewModelScope.launch) para llamar al Repositorio y eliminar la nota de la base de datos.
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             repository.delete(note)
