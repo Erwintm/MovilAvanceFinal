@@ -5,10 +5,12 @@ import androidx.room.Room
 import com.example.notas.data.NoteDatabase
 import com.example.notas.data.NoteRepository
 import com.example.notas.data.OfflineNoteRepository
+import com.example.notas.data.RecordatorioRepository
 
 class TodoApplication : Application() {
     lateinit var database: NoteDatabase
     lateinit var repository: NoteRepository
+    lateinit var recordatorioRepository: RecordatorioRepository
 
     override fun onCreate() {
         super.onCreate()
@@ -20,6 +22,11 @@ class TodoApplication : Application() {
             .fallbackToDestructiveMigration()
             .build()
 
-        repository = OfflineNoteRepository(database.noteDao(), database.multimediaDao(),database.recordatorioDao())
+        repository = OfflineNoteRepository(database.noteDao(),
+            database.multimediaDao(),
+            database.recordatorioDao())
+        recordatorioRepository = RecordatorioRepository(
+            database.recordatorioDao()
+        )
     }
 }

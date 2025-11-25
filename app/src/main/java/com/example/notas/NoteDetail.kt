@@ -19,13 +19,23 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.autofill.ContentDataType.Companion.Date
 import androidx.core.content.ContextCompat
 import com.example.notas.utils.AudioRecorder
 import com.example.notas.data.Multimedia
 import com.example.notas.utils.AudioPlayer // <-- ¡IMPORTADO!
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player // <-- ¡IMPORTADO!
+import com.example.notas.viewmodel.RecordatorioViewModel
+import java.util.Date
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import com.example.notas.data.Recordatorio
+
 
 // ----------------------------------------------------------------------
 // NUEVO COMPOSABLE: Componente de Control del Reproductor de Audio
@@ -90,6 +100,9 @@ fun NoteDetailScreen(
     val context = LocalContext.current.applicationContext as TodoApplication
     val viewModel: NoteDetailViewModel = viewModel(
         factory = NoteViewModelFactory(context.repository)
+    )
+    val recordatorioViewModel: RecordatorioViewModel = viewModel(
+        factory = RecordatorioViewModelFactory(context.recordatorioRepository)
     )
 
     LaunchedEffect(key1 = noteId) {
@@ -160,6 +173,67 @@ fun NoteDetailScreen(
 
     // Lista observable de archivos multimedia
     val multimediaList by viewModel.multimediaList.collectAsState()
+    val recordatorios by recordatorioViewModel
+        .getRecordatoriosByNota(noteId)
+        .collectAsState(initial = emptyList())
+
+    Button(onClick = {
+        recordatorioViewModel.insert(
+            Recordatorio(
+                titulo = "Nuevo recordatorio",
+                descripcion = "",
+                fechaRecordatorio = System.currentTimeMillis() + 3600000,
+                notaId = noteId
+            )
+        )
+    }) {
+        Text("Agregar recordatorio")
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Text(
+        "Recordatorios (${recordatorios.size}):",
+        color = Color.White,
+        fontSize = 18.sp
+    )
+
+    Divider(color = Color.Gray)
+
+    if (recordatorios.isEmpty()) {
+        Text(
+            "No hay recordatorios para esta nota.",
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+    } else {
+        recordatorios.forEach { r ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Text("Título: ${r.titulo}", color = Color.White)
+                Text("Descripción: ${r.descripcion}", color = Color.LightGray)
+                Text("Fecha: ${Date(r.fechaRecordatorio)}", color = Color.Gray)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = { recordatorioViewModel.delete(r) }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            tint = Color.Red
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     // ----------------------------------------------------------------------
 

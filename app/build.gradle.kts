@@ -46,6 +46,8 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.2.0") // O la última versión estable
     implementation("androidx.media3:media3-ui:1.2.0")
     implementation("androidx.core:core-ktx:1.9.0")
+    implementation ("androidx.compose.material3:material3")
+    implementation ("androidx.compose.material:material-icons-extended")
 
     implementation("androidx.compose.material3:material3-window-size-class")
     implementation("io.coil-kt:coil-compose:2.6.0")
@@ -60,6 +62,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.material3.window.size.class1)
+    implementation(libs.androidx.media3.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
