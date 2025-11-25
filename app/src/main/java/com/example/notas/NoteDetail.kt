@@ -14,9 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notas.viewmodel.NoteDetailViewModel
-import android.net.Uri // 👈 ¡IMPORTANTE: Importación de Uri!
-
-// NUEVAS IMPORTACIONES AÑADIDAS para Multimedia y Permisos
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
@@ -24,9 +22,57 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.example.notas.utils.AudioRecorder
 import com.example.notas.data.Multimedia
+import com.example.notas.utils.AudioPlayer // <-- ¡IMPORTADO!
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-// ------------------------------
+import androidx.media3.common.Player // <-- ¡IMPORTADO!
+
+// ----------------------------------------------------------------------
+// NUEVO COMPOSABLE: Componente de Control del Reproductor de Audio
+// ----------------------------------------------------------------------
+@Composable
+fun AudioPlayerControl(
+    fileName: String,
+    player: AudioPlayer
+) {
+    // Estado para rastrear si el audio está reproduciéndose
+    var isPlaying by remember { mutableStateOf(false) }
+
+    // Efecto para escuchar cambios de reproducción (si el audio termina, actualiza isPlaying)
+    DisposableEffect(player) {
+        val listener = object : Player.Listener {
+            override fun onIsPlayingChanged(currentIsPlaying: Boolean) {
+                isPlaying = currentIsPlaying
+            }
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) {
+                    isPlaying = false
+                }
+            }
+        }
+        player.player?.addListener(listener)
+
+        // Liberar el reproductor cuando este composable salga de la composición
+        onDispose {
+            player.player?.removeListener(listener)
+            player.release()
+        }
+    }
+
+    Button(
+        onClick = {
+            if (isPlaying) {
+                player.stop()
+            } else {
+                player.play(fileName)
+            }
+        },
+        modifier = Modifier.padding(horizontal = 8.dp)
+    ) {
+        Text(if (isPlaying) "Stop" else "Play")
+    }
+}
+// ----------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,12 +92,10 @@ fun NoteDetailScreen(
         factory = NoteViewModelFactory(context.repository)
     )
 
-    // ⚠️ INICIALIZAR EL VIEWMODEL para cargar la Multimedia de esta nota
     LaunchedEffect(key1 = noteId) {
         viewModel.initialize(noteId)
     }
 
-    // Reconstrucción del Objeto Note (Estado)
     val currentNote = remember {
         Note(
             id = noteId,
@@ -66,18 +110,17 @@ fun NoteDetailScreen(
     }
 
     // ----------------------------------------------------------------------
-    // LÓGICA DE GRABACIÓN DE AUDIO Y PERMISOS (Unidad 8)
+    // LÓGICA DE GRABACIÓN Y REPRODUCCIÓN (Unidad 8)
     // ----------------------------------------------------------------------
 
     val recorder = remember { AudioRecorder(context) }
+    val audioPlayer = remember { AudioPlayer(context) } // <-- ¡INSTANCIA DEL REPRODUCTOR!
     var isRecording by remember { mutableStateOf(false) }
 
-    // Manejador para solicitar el permiso RECORD_AUDIO
     val audioPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permiso OK: Iniciar grabación
             val fileName = "audio_${System.currentTimeMillis()}.mp4"
             recorder.start(fileName)
             isRecording = true
@@ -86,32 +129,26 @@ fun NoteDetailScreen(
         }
     }
 
-    // Función que inicia el flujo de grabación
     val startRecordingFlow: () -> Unit = {
         when {
-            // 1. Verificar si ya tenemos el permiso
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
-                // Si ya lo tiene, iniciar grabación inmediatamente
                 val fileName = "audio_${System.currentTimeMillis()}.mp4"
                 recorder.start(fileName)
                 isRecording = true
             }
-            // 2. Solicitar el permiso (el launcher manejará la respuesta)
             else -> {
                 audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
         }
     }
 
-    // Lógica para detener la grabación
     val stopRecordingFlow: () -> Unit = {
         val fileName = recorder.stop()
         isRecording = false
         if (fileName != null) {
-            // 3. Insertar el registro en la BD (Unidad 7)
             val newMultimedia = Multimedia(
                 notaId = noteId,
                 uriArchivo = fileName,
@@ -157,9 +194,7 @@ fun NoteDetailScreen(
                 Text("${stringResource(R.string.estado)}: ${currentNote.estado ?: "Pendiente"}", color = Color.White)
             }
 
-            // ----------------------------------------------------------------------
-            // Botón de Grabación (NUEVA FUNCIONALIDAD)
-            // ----------------------------------------------------------------------
+            // Botón de Grabación
             Button(
                 onClick = {
                     if (isRecording) stopRecordingFlow() else startRecordingFlow()
@@ -172,7 +207,7 @@ fun NoteDetailScreen(
             }
 
             // ----------------------------------------------------------------------
-            // VISUALIZACIÓN DE MULTIMEDIA (NUEVA SECCIÓN)
+            // VISUALIZACIÓN DE MULTIMEDIA (CORREGIDO PARA EVITAR CRASH)
             // ----------------------------------------------------------------------
 
             Spacer(Modifier.height(10.dp))
@@ -193,21 +228,21 @@ fun NoteDetailScreen(
                             color = Color.LightGray,
                             modifier = Modifier.weight(1f)
                         )
-                        // Botón de Reproducción (Pendiente de implementar en el siguiente paso)
-                        Button(
-                            onClick = { /* Lógica de Reproducción */ },
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        ) {
-                            Text("Play")
+
+                        // 💥 CORRECCIÓN CRÍTICA: Solo mostrar el control de reproducción si es AUDIO
+                        if (multimedia.tipo == "AUDIO") {
+                            AudioPlayerControl(
+                                fileName = multimedia.uriArchivo,
+                                player = audioPlayer
+                            )
                         }
+                        // Opcional: Agregar lógica para tipo "IMAGEN" si es necesario
 
                         IconButton(
                             onClick = {
-                                // Eliminar registro de BD y archivo físico
                                 viewModel.deleteMultimedia(multimedia, context.filesDir)
                             }
                         ) {
-                            // Ícono Corregido usando VectorDrawable estándar
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = android.R.drawable.ic_delete),
                                 contentDescription = "Eliminar",
@@ -218,9 +253,7 @@ fun NoteDetailScreen(
                 }
             }
 
-            // ----------------------------------------------------------------------
             // Contenido Antiguo (Imagen simple)
-            // ----------------------------------------------------------------------
             if (!currentNote.imageUri.isNullOrBlank()) {
                 AsyncImage(
                     model = currentNote.imageUri,
@@ -239,22 +272,16 @@ fun NoteDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
+                // ... (Botones Editar, Eliminar, Regresar)
                 Button(
                     onClick = {
-                        // 🚀 CORRECCIÓN APLICADA: Codificar TODOS los argumentos de cadena antes de navegar.
                         val titleEncoded = Uri.encode(currentNote.title)
                         val descEncoded = Uri.encode(currentNote.description)
-
-                        // imageUri puede ser null, lo manejamos y codificamos el resultado.
                         val imgEncoded = currentNote.imageUri?.let { Uri.encode(it) } ?: Uri.encode("")
-
-                        // Campos de Tarea: Si son nulos, usamos "", y luego codificamos.
                         val fechaEncoded = Uri.encode(currentNote.fechaLimite ?: "")
                         val horaEncoded = Uri.encode(currentNote.hora ?: "")
                         val estadoEncoded = Uri.encode(currentNote.estado ?: "")
 
-                        // Navega a la ruta de edición con los argumentos codificados
                         navController.navigate(
                             "editNote/${currentNote.id}/$titleEncoded/$descEncoded/$imgEncoded/${currentNote.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded"
                         )
@@ -264,9 +291,7 @@ fun NoteDetailScreen(
 
                 Button(
                     onClick = {
-
                         viewModel.deleteNote(currentNote)
-
                         navController.popBackStack("main", inclusive = false)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
@@ -274,7 +299,6 @@ fun NoteDetailScreen(
                     Text(stringResource(R.string.eliminar), color = MaterialTheme.colorScheme.onError)
                 }
 
-                // Botón Regresar
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                     Text(stringResource(R.string.regresar))
                 }

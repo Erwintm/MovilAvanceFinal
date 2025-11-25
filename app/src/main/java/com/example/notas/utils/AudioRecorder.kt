@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
 import java.io.File
-import java.io.FileOutputStream
 import java.lang.RuntimeException
 
 class AudioRecorder(private val context: Context) {
@@ -14,10 +13,13 @@ class AudioRecorder(private val context: Context) {
     private lateinit var outputFile: File
 
     fun start(fileName: String) {
-        // 1. Crear el archivo de salida en el directorio interno de la app
+        // 1. Crear el archivo de salida
         outputFile = File(context.filesDir, fileName)
 
-        // Inicializar el MediaRecorder
+        // Limpiar cualquier instancia anterior fallida antes de empezar
+        stopAndRelease()
+
+        // 2. Inicializar el MediaRecorder de la forma adecuada para el SO
         recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(context)
         } else {
@@ -30,50 +32,52 @@ class AudioRecorder(private val context: Context) {
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
 
-            // Simplificación y robustez: Usar la ruta absoluta para todas las versiones.
-            // Esto evita problemas con FileDescriptor en diferentes versiones de SO.
+            // Simplificación: Usar la ruta absoluta para todas las versiones.
+            // Esto es más estable que usar FileDescriptor y evita muchos crashes.
             @Suppress("DEPRECATION")
             setOutputFile(outputFile.absolutePath)
 
             try {
+                // El orden PREPARE -> START es CRÍTICO
                 prepare()
                 start()
             } catch (e: Exception) {
-                // Si falla al iniciar o preparar (ej: permiso denegado, recurso en uso)
+                // Si falla al iniciar o preparar, liberamos y limpiamos
                 e.printStackTrace()
-                release() // Liberamos recursos
-                recorder = null
+                stopAndRelease()
             }
         }
     }
 
     /**
-     * Detiene y libera el MediaRecorder de forma segura.
-     * Devuelve el nombre del archivo si la grabación fue al menos parcial.
+     * Detiene y libera el MediaRecorder de forma segura, devolviendo el nombre del archivo.
      */
     fun stop(): String? {
-        // 1. Guardamos las referencias antes de anularlas, asegurando que se inicializó
         val fileName = if (::outputFile.isInitialized) outputFile.name else null
-        val fileExists = if (::outputFile.isInitialized) outputFile.exists() else false
+        var fileExists = false
 
         try {
-            // Intenta detener y liberar los recursos
-            recorder?.apply {
-                stop()
-                release()
-            }
+            // Detener primero, luego liberar.
+            recorder?.stop()
+            fileExists = if (::outputFile.isInitialized) outputFile.exists() else false
         } catch (e: RuntimeException) {
-            // 2. Captura errores comunes como "stop failed" (cuando la grabación es muy corta)
+            // Captura errores como "stop failed" (grabación demasiado corta)
             e.printStackTrace()
-            // Asegúrate de liberar los recursos aunque la parada haya fallado
-            recorder?.release()
         } finally {
-            // 3. Siempre aseguramos que la referencia se limpie
-            recorder = null
+            // Siempre liberar y limpiar en el bloque finally.
+            stopAndRelease()
         }
 
-        // Devolvemos el nombre del archivo solo si existía y fue inicializado
+        // Devolvemos el nombre del archivo solo si existía y fue inicializado.
         return if (fileExists) fileName else null
+    }
+
+    /**
+     * Función auxiliar para liberar recursos de forma forzada.
+     */
+    private fun stopAndRelease() {
+        recorder?.release()
+        recorder = null
     }
 
     fun isRecording() = recorder != null

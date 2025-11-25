@@ -32,18 +32,70 @@ import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
 import com.example.notas.viewmodel.MainViewModel
 
+// 🚨 IMPORTACIONES NECESARIAS PARA PERMISOS DE MICRÓFONO
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import androidx.core.app.ActivityCompat
+// ----------------------------------------------------------------------------------
+
 
 class MainActivity : ComponentActivity() {
+
+    // Lista de permisos críticos que necesitamos de inicio
+    private val PERMISSIONS = arrayOf(
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.CAMERA
+    )
+    private val REQUEST_CODE_PERMISSIONS = 100
+
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 🚨 1. Solicitar permisos críticos al inicio (CORRECCIÓN CRÍTICA)
+        requestCriticalPermissions()
+
         enableEdgeToEdge()
         setContent {
             val windowSize = calculateWindowSizeClass(this)
             MyApp(windowSize.widthSizeClass)
         }
     }
+
+    // Función que verifica y solicita los permisos
+    private fun requestCriticalPermissions() {
+        var needsRequest = false
+        for (permission in PERMISSIONS) {
+            // Verificar si el permiso no ha sido concedido
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                needsRequest = true
+                break // Basta con que falte uno para solicitar
+            }
+        }
+
+        if (needsRequest) {
+            // Solicitar los permisos al usuario
+            ActivityCompat.requestPermissions(
+                this,
+                PERMISSIONS,
+                REQUEST_CODE_PERMISSIONS
+            )
+        }
+    }
+
+    // Opcional: Manejar el resultado de la solicitud de permisos
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            // El resultado de la solicitud de permisos se maneja automáticamente por el SO.
+        }
+    }
 }
+
+// ----------------------------------------------------------------------------------
+// EL RESTO DE TUS COMPOSABLES SE MANTIENEN AQUÍ (MyApp, MainScreen, etc.)
+// ----------------------------------------------------------------------------------
 
 @Composable
 fun MyApp(windowSize: WindowWidthSizeClass) {
@@ -80,11 +132,8 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                     val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                     val title = backStackEntry.arguments?.getString("title") ?: ""
                     val description = backStackEntry.arguments?.getString("description") ?: ""
-                    // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
                     val imageUri = backStackEntry.arguments?.getString("imageUri")
                     val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
-                    // Esto garantiza que sean String si existen, o null si no se pudieron extraer.
-// PERO lo más importante es que no fuerza la conversión de "" a null.
                     val fecha = backStackEntry.arguments?.getString("fecha")
                     val hora = backStackEntry.arguments?.getString("hora")
                     val estado = backStackEntry.arguments?.getString("estado")
@@ -118,7 +167,6 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                     val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                     val title = backStackEntry.arguments?.getString("title") ?: ""
                     val description = backStackEntry.arguments?.getString("description") ?: ""
-                    // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
                     val imageUri = backStackEntry.arguments?.getString("imageUri")
                     val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                     val fecha =
@@ -176,7 +224,6 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                                 val title = backStackEntry.arguments?.getString("title") ?: ""
                                 val description = backStackEntry.arguments?.getString("description") ?: ""
-                                // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
                                 val imageUri = backStackEntry.arguments?.getString("imageUri")
                                 val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                                 val fecha =
@@ -215,7 +262,6 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                                 val title = backStackEntry.arguments?.getString("title") ?: ""
                                 val description = backStackEntry.arguments?.getString("description") ?: ""
-                                // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
                                 val imageUri = backStackEntry.arguments?.getString("imageUri")
                                 val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                                 val fecha =

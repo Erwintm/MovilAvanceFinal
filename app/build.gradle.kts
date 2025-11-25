@@ -10,8 +10,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.todoapp"
-        minSdk = 21
+        applicationId = "com.example.notas"
+        minSdk = 24
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -41,6 +41,12 @@ android {
 }
 
 dependencies {
+    implementation("androidx.media3:media3-exoplayer:1.2.0") // O la última versión estable
+    implementation("androidx.media3:media3-ui:1.2.0")
+    implementation("androidx.media3:media3-exoplayer:1.2.0") // O la última versión estable
+    implementation("androidx.media3:media3-ui:1.2.0")
+    implementation("androidx.core:core-ktx:1.9.0")
+
     implementation("androidx.compose.material3:material3-window-size-class")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("androidx.navigation:navigation-compose:2.8.0")

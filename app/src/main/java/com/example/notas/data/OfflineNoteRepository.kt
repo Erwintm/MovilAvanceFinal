@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.Flow
 class OfflineNoteRepository(
   private val noteDao: NoteDao,
 
-  private val multimediaDao: MultimediaDao
+  private val multimediaDao: MultimediaDao,
+  recordatorioDao: RecordatorioDao
 ) : NoteRepository {
 
 
