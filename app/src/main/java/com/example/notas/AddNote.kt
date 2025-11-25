@@ -126,14 +126,14 @@ fun AddNoteScreen(
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(end = 16.dp)) {
                     RadioButton(
                         selected = viewModel.seleccionarTipo == "Notes",
-                        onClick = { viewModel.updateTipo("Notes") } // 👈 Evento al ViewModel
+                        onClick = { viewModel.updateTipo("Notes") } // Evento al ViewModel
                     )
                     Text(stringResource(R.string.notas), modifier = Modifier.padding(start = 4.dp), color = Color.White)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
                         selected = viewModel.seleccionarTipo == "Tasks",
-                        onClick = { viewModel.updateTipo("Tasks") } // 👈 Evento al ViewModel
+                        onClick = { viewModel.updateTipo("Tasks") } //  Evento al ViewModel
                     )
                     Text(stringResource(R.string.tareas), modifier = Modifier.padding(start = 4.dp), color = Color.White)
                 }
