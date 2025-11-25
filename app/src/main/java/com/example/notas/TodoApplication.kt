@@ -20,6 +20,6 @@ class TodoApplication : Application() {
             .fallbackToDestructiveMigration()
             .build()
 
-        repository = OfflineNoteRepository(database.noteDao())
+        repository = OfflineNoteRepository(database.noteDao(), database.multimediaDao())
     }
 }

@@ -79,15 +79,14 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                     val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                     val title = backStackEntry.arguments?.getString("title") ?: ""
                     val description = backStackEntry.arguments?.getString("description") ?: ""
-                    val imageUri =
-                        backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
+                    // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
+                    val imageUri = backStackEntry.arguments?.getString("imageUri")
                     val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
-                    val fecha =
-                        backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
-                    val hora =
-                        backStackEntry.arguments?.getString("hora")?.takeIf { it.isNotEmpty() }
-                    val estado =
-                        backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
+                    // Esto garantiza que sean String si existen, o null si no se pudieron extraer.
+// PERO lo más importante es que no fuerza la conversión de "" a null.
+                    val fecha = backStackEntry.arguments?.getString("fecha")
+                    val hora = backStackEntry.arguments?.getString("hora")
+                    val estado = backStackEntry.arguments?.getString("estado")
 
                     NoteDetailScreen(
                         navController,
@@ -118,8 +117,8 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                     val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                     val title = backStackEntry.arguments?.getString("title") ?: ""
                     val description = backStackEntry.arguments?.getString("description") ?: ""
-                    val imageUri =
-                        backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
+                    // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
+                    val imageUri = backStackEntry.arguments?.getString("imageUri")
                     val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                     val fecha =
                         backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
@@ -176,8 +175,8 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                                 val title = backStackEntry.arguments?.getString("title") ?: ""
                                 val description = backStackEntry.arguments?.getString("description") ?: ""
-                                val imageUri =
-                                    backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
+                                // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
+                                val imageUri = backStackEntry.arguments?.getString("imageUri")
                                 val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                                 val fecha =
                                     backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
@@ -215,8 +214,8 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                                 val title = backStackEntry.arguments?.getString("title") ?: ""
                                 val description = backStackEntry.arguments?.getString("description") ?: ""
-                                val imageUri =
-                                    backStackEntry.arguments?.getString("imageUri")?.takeIf { it.isNotEmpty() }
+                                // 🚀 CORRECCIÓN APLICADA: Eliminado .takeIf para manejar "" de forma segura
+                                val imageUri = backStackEntry.arguments?.getString("imageUri")
                                 val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                                 val fecha =
                                     backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
@@ -326,10 +325,13 @@ fun MainScreen(
                     val titleEncoded = Uri.encode(note.title)
                     val descEncoded = Uri.encode(note.description)
                     val imgEncoded = note.imageUri?.let { Uri.encode(it) } ?: ""
-                    val fecha = note.fechaLimite ?: ""
-                    val hora = note.hora ?: ""
-                    val estado = note.estado ?: ""
-                    navController.navigate("noteDetail/${note.id}/$titleEncoded/$descEncoded/$imgEncoded/${note.idTipo}/$fecha/$hora/$estado")
+
+                    // 🚀 CORRECCIÓN APLICADA: Codificar SIEMPRE los campos opcionales.
+                    val fechaEncoded = Uri.encode(note.fechaLimite ?: "")
+                    val horaEncoded = Uri.encode(note.hora ?: "")
+                    val estadoEncoded = Uri.encode(note.estado ?: "")
+
+                    navController.navigate("noteDetail/${note.id}/$titleEncoded/$descEncoded/$imgEncoded/${note.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded")
                 }
             }
         }

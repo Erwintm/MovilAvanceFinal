@@ -2,75 +2,76 @@ package com.example.notas.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.notas.data.Multimedia // 👈 Importar la nueva entidad
+import com.example.notas.data.Multimedia
 import com.example.notas.data.Note
 import com.example.notas.data.NoteRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.io.File // 👈 Necesario para eliminar el archivo físico
+import java.io.File
 
 class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() {
 
     // ----------------------------------------------------
-    // NUEVAS PROPIEDADES PARA MULTIMEDIA
+    // CORRECCIÓN CLAVE: Inicialización Segura de Multimedia
     // ----------------------------------------------------
 
-    // Almacena el ID de la Nota/Tarea actual (se inicializa al entrar a la pantalla)
-    private var currentNoteId: Int = 0
+    // 1. Usamos un flujo mutable para rastrear el ID de la nota (inicialmente 0)
+    private val _currentNoteId = MutableStateFlow(0)
 
-    // Lista observable de todos los archivos multimedia asociados a la nota actual
-    lateinit var multimediaList: StateFlow<List<Multimedia>>
-
-    fun initialize(noteId: Int) {
-        if (noteId != currentNoteId) {
-            currentNoteId = noteId
-
-            // Inicializar la StateFlow que obtendrá la lista del Repositorio
-            multimediaList = repository.getMultimediaForNota(noteId)
-                .stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000),
-                    initialValue = emptyList() // Inicialmente vacía
-                )
+    // 2. Inicialización segura de multimediaList (SIEMPRE tiene un valor)
+    val multimediaList: StateFlow<List<Multimedia>> = _currentNoteId
+        .flatMapLatest { noteId ->
+            if (noteId == 0) {
+                // Si el ID es 0, devuelve un flujo vacío para evitar errores.
+                flowOf(emptyList())
+            } else {
+                // Si el ID es válido, obtenemos el flujo real del repositorio.
+                repository.getMultimediaForNota(noteId)
+            }
         }
-    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList() // Siempre comienza con una lista vacía segura.
+        )
 
     // ----------------------------------------------------
-    // MÉTODOS DE ACCIÓN
+    // MÉTODOS DE INICIALIZACIÓN Y ACCIÓN
     // ----------------------------------------------------
+
+    // La función initialize solo necesita actualizar el ID.
+    fun initialize(noteId: Int) {
+        _currentNoteId.value = noteId
+    }
 
     fun deleteNote(note: Note) {
         viewModelScope.launch {
-            // OPTIMIZACIÓN: Idealmente, deberías eliminar primero los archivos físicos
-            // asociados a esta nota antes de eliminar la nota de la BD.
+            // NOTA: Implementar lógica para eliminar archivos multimedia asociados
+            // antes de eliminar la nota si es necesario.
             repository.delete(note)
         }
     }
 
-    fun updateStatus(note: Note, newStatus: String) {
-        // ... (Tu lógica existente para actualizar el estado)
-    }
+    // NOTA: Si tenías 'updateStatus', asegúrate de agregarlo aquí si lo necesitas.
+    // fun updateStatus(note: Note, newStatus: String) { ... }
 
     /**
      * Elimina un archivo multimedia de la BD y, crucialmente, del disco.
-     * @param multimedia El objeto Multimedia a eliminar.
-     * @param storagePath La ruta base de almacenamiento para construir la ruta absoluta.
      */
     fun deleteMultimedia(multimedia: Multimedia, contextFilesDir: File) {
         viewModelScope.launch {
             // 1. Eliminar el archivo físico del disco (Requisito: Archivos)
             try {
-                // Asume que uriArchivo es una ruta relativa o un nombre de archivo.
-                // Si es una ruta absoluta, se usaría directamente new File(multimedia.uriArchivo).
                 val fileToDelete = File(contextFilesDir, multimedia.uriArchivo)
                 if (fileToDelete.exists()) {
                     fileToDelete.delete()
                 }
             } catch (e: Exception) {
-                // Manejar el error de eliminación de archivo
                 e.printStackTrace()
             }
 
