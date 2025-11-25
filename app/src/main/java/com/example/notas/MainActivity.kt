@@ -27,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.notas.NoteItemTitle
 import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
 import com.example.notas.viewmodel.MainViewModel
