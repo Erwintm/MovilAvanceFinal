@@ -22,7 +22,7 @@ data class Recordatorio(
 
     val titulo: String,
     val descripcion: String,
-    val fechaRecordatorio: Long,   // fecha u hora como timestamp
-    val notaId: Int,               // ← NO nullable
+    val fechaRecordatorio: Long,
+    val notaId: Int,
     val createdAt: Long = System.currentTimeMillis()
 )
