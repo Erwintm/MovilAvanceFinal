@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.notas.data.Note
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalContext // <-- Importado
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notas.viewmodel.NoteDetailViewModel
@@ -22,23 +22,21 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.example.notas.utils.AudioRecorder
 import com.example.notas.data.Multimedia
-import com.example.notas.utils.AudioPlayer // <-- ¡IMPORTADO!
+import com.example.notas.utils.AudioPlayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.media3.common.Player // <-- ¡IMPORTADO!
+import androidx.media3.common.Player
 
 // ----------------------------------------------------------------------
-// NUEVO COMPOSABLE: Componente de Control del Reproductor de Audio
+// COMPOSABLE: Componente de Control del Reproductor de Audio
 // ----------------------------------------------------------------------
 @Composable
 fun AudioPlayerControl(
     fileName: String,
     player: AudioPlayer
 ) {
-    // Estado para rastrear si el audio está reproduciéndose
     var isPlaying by remember { mutableStateOf(false) }
 
-    // Efecto para escuchar cambios de reproducción (si el audio termina, actualiza isPlaying)
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(currentIsPlaying: Boolean) {
@@ -52,10 +50,8 @@ fun AudioPlayerControl(
         }
         player.player?.addListener(listener)
 
-        // Liberar el reproductor cuando este composable salga de la composición
         onDispose {
             player.player?.removeListener(listener)
-            player.release()
         }
     }
 
@@ -87,9 +83,14 @@ fun NoteDetailScreen(
     hora: String? = null,
     estado: String? = null
 ) {
-    val context = LocalContext.current.applicationContext as TodoApplication
+    // 🚨 CORRECCIÓN CLAVE (PLAN B): Usamos el contexto de la Activity (LocalContext.current)
+    val activityContext = LocalContext.current
+
+    // Obtenemos el repositorio del contexto de la aplicación, que es más seguro para la BD
+    val applicationForRepo = activityContext.applicationContext as TodoApplication
+
     val viewModel: NoteDetailViewModel = viewModel(
-        factory = NoteViewModelFactory(context.repository)
+        factory = NoteViewModelFactory(applicationForRepo.repository)
     )
 
     LaunchedEffect(key1 = noteId) {
@@ -113,9 +114,19 @@ fun NoteDetailScreen(
     // LÓGICA DE GRABACIÓN Y REPRODUCCIÓN (Unidad 8)
     // ----------------------------------------------------------------------
 
-    val recorder = remember { AudioRecorder(context) }
-    val audioPlayer = remember { AudioPlayer(context) } // <-- ¡INSTANCIA DEL REPRODUCTOR!
+    // 🚨 Usamos activityContext para los recursos de Media
+    val recorder = remember { AudioRecorder(activityContext) }
+    val audioPlayer = remember { AudioPlayer(activityContext) }
     var isRecording by remember { mutableStateOf(false) }
+
+    // Asegura la liberación de recursos cuando la pantalla sale
+    DisposableEffect(Unit) {
+        onDispose {
+            audioPlayer.release()
+            recorder.stop()
+        }
+    }
+
 
     val audioPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -131,8 +142,9 @@ fun NoteDetailScreen(
 
     val startRecordingFlow: () -> Unit = {
         when {
+            // 🚨 Usamos activityContext para checkSelfPermission
             ContextCompat.checkSelfPermission(
-                context,
+                activityContext,
                 Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
                 val fileName = "audio_${System.currentTimeMillis()}.mp4"
@@ -207,7 +219,7 @@ fun NoteDetailScreen(
             }
 
             // ----------------------------------------------------------------------
-            // VISUALIZACIÓN DE MULTIMEDIA (CORREGIDO PARA EVITAR CRASH)
+            // VISUALIZACIÓN DE MULTIMEDIA
             // ----------------------------------------------------------------------
 
             Spacer(Modifier.height(10.dp))
@@ -229,18 +241,18 @@ fun NoteDetailScreen(
                             modifier = Modifier.weight(1f)
                         )
 
-                        // 💥 CORRECCIÓN CRÍTICA: Solo mostrar el control de reproducción si es AUDIO
+                        // Muestra el control de reproducción si es AUDIO
                         if (multimedia.tipo == "AUDIO") {
                             AudioPlayerControl(
                                 fileName = multimedia.uriArchivo,
                                 player = audioPlayer
                             )
                         }
-                        // Opcional: Agregar lógica para tipo "IMAGEN" si es necesario
 
                         IconButton(
                             onClick = {
-                                viewModel.deleteMultimedia(multimedia, context.filesDir)
+                                // Asegúrate de que el contexto para eliminar archivos use el context.filesDir que es el de la aplicación
+                                viewModel.deleteMultimedia(multimedia, applicationForRepo.filesDir)
                             }
                         ) {
                             Icon(
