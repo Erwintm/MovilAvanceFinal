@@ -1,0 +1,23 @@
+package com.example.notas.data
+
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
+
+interface RecordatorioDao {
+    @Query("SELECT * FROM recordatorios")
+    fun getAll(): Flow<List<Recordatorio>>
+
+    @Query("SELECT * FROM recordatorios WHERE notaId = :id")
+    fun getByNota(id: Int): Flow<List<Recordatorio>>
+
+    @Insert
+    suspend fun insert(recordatorio: Recordatorio)
+
+    @Delete
+    suspend fun delete(recordatorio: Recordatorio)
+
+}
