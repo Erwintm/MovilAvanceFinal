@@ -8,4 +8,8 @@ interface NoteRepository {
     suspend fun insert(note: Note)
     suspend fun update(note: Note)
     suspend fun delete(note: Note)
+
+    fun getMultimediaForNota(notaId: Int): Flow<List<Multimedia>>
+    suspend fun insertMultimedia(multimedia: Multimedia)
+    suspend fun deleteMultimedia(multimedia: Multimedia)
 }

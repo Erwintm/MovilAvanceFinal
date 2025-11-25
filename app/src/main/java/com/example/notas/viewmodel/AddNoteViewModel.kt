@@ -11,9 +11,13 @@ import kotlinx.coroutines.launch
 
 
 class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
-
+//---Variables de estado xd
     var title by mutableStateOf("")
         private set
+//Su propósito principal es almacenar el valor actual del título de tu nota o tarea dentro del ViewModel,
+// permitiendo que la interfaz de usuario (UI) lo lea y que solo el ViewModel lo modifique.
+
+    //Compose actualiza automáticamente
 
     var description by mutableStateOf("")
         private set
@@ -30,10 +34,14 @@ class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
     var hora by mutableStateOf("")
         private set
     private val estado by mutableStateOf("Pendiente")
-
+//---------------------------------------------
     val isEntryValid: Boolean
         get() = title.isNotBlank() && description.isNotBlank()
 
+    //Estos métodos son llamados por la AddNoteScreen cuando el usuario interactúa con los campos.
+
+
+    // Simplemente actualiza el estado observable 'title'
     fun updateTitle(newTitle: String) {
         title = newTitle
     }

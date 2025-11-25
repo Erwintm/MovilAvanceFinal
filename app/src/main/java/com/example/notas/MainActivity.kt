@@ -273,7 +273,7 @@ fun MainScreen(
     navController: androidx.navigation.NavController,
     viewModel: MainViewModel
 ) {
-
+//Escuchan al viewmodel y traen los datos
     val searchQuery by viewModel.searchText.collectAsState()
     val notes by viewModel.filteredNotes.collectAsState()
     val selectedFilterId by viewModel.filterType.collectAsState()
@@ -293,7 +293,7 @@ fun MainScreen(
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = searchQuery,
-
+                //lama al viewmodel para actualizar la ui
                 onValueChange = viewModel::updateSearchText,
                 label = { Text(stringResource(R.string.buscar), color = Color.White) },
                 modifier = Modifier.weight(1f)

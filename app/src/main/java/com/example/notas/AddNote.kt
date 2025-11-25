@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 fun AddNote(navController: NavController) {
     val context = LocalContext.current.applicationContext as TodoApplication
 
-
+    //jere
     val viewModel: AddNoteViewModel = viewModel(
         factory = NoteViewModelFactory(context.repository)
     )
@@ -83,8 +83,9 @@ fun AddNoteScreen(
 
                     Button(
                         onClick = {
-
+                                //guardar
                             viewModel.saveNote()
+                            //dirige pantalla principal
                             onSaveComplete()
                         },
 
@@ -171,6 +172,7 @@ fun AddNoteScreen(
 
 
             if (viewModel.seleccionarTipo == "Tasks") {
+                // Muestra Fecha Límite y Hora, que también delegan sus valores y eventos al ViewModel
                 OutlinedTextField(
                     value = viewModel.fechaLimite,
                     onValueChange = viewModel::updateFechaLimite,

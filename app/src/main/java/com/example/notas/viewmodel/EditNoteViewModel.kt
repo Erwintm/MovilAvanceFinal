@@ -33,7 +33,7 @@ class EditNoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
     val isEntryValid: Boolean
         get() = title.isNotBlank() && description.isNotBlank()
-
+//Se llama una vez desde la EditNoteScreen (LaunchedEffect) para precargar el formulario
     fun initializeState(note: Note) {
         noteId = note.id
         title = note.title
@@ -46,6 +46,7 @@ class EditNoteViewModel(private val repository: NoteRepository) : ViewModel() {
         estado = note.estado ?: "Pendiente"
     }
 
+    //Simplemente actualizan el estado interno correspondiente (ej: al escribir en un campo de texto).
     fun updateTitle(newTitle: String) { title = newTitle }
     fun updateDescription(newDescription: String) { description = newDescription }
     fun updateTipo(newTipo: String) { seleccionarTipo = newTipo }
