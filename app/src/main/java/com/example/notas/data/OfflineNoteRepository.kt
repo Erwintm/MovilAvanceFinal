@@ -15,6 +15,7 @@ class OfflineNoteRepository(
   override suspend fun update(note: Note) = noteDao.updateNote(note)
   override suspend fun delete(note: Note) = noteDao.deleteNote(note)
 
+  override fun getNoteById(id: Int): Flow<Note> = noteDao.getNoteById(id)
 
   override fun getMultimediaForNota(notaId: Int): Flow<List<Multimedia>> =
     multimediaDao.getMultimediaForNota(notaId)

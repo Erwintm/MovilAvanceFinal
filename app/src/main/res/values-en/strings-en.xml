@@ -11,6 +11,7 @@
     <string name="descripcion">Description</string>
     <string name="fecha_límite">Deadline</string>
     <string name="hora">Time</string>
+    <string name="volver">Volver</string>
     <string name="estado">Status</string>
     <string name="buscar">Search</string>
     <string name="notas">Notes</string>

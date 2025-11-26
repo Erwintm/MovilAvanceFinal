@@ -1,6 +1,10 @@
 package com.example.notas
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,27 +19,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notas.viewmodel.NoteDetailViewModel
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
 import android.content.pm.PackageManager
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.core.content.ContextCompat
 import com.example.notas.utils.AudioRecorder
 import com.example.notas.data.Multimedia
 import com.example.notas.utils.AudioPlayer
-import androidx.compose.ui.unit.sp
-import androidx.media3.common.Player
-import com.example.notas.data.Recordatorio
-import com.example.notas.viewmodel.RecordatorioViewModel
+import com.example.notas.utils.VideoRecorder
+import androidx.compose.ui.viewinterop.AndroidView
+
+// 🚨 Importaciones necesarias para la generación de nombre de archivo y reproductor
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
+import androidx.media3.common.Player
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import java.io.File
+import androidx.compose.runtime.DisposableEffect
+
 
 // ----------------------------------------------------------------------
-// COMPOSABLE: Componente de Control del Reproductor de Audio
+// COMPONENTES DE REPRODUCCIÓN
 // ----------------------------------------------------------------------
+
 @Composable
 fun AudioPlayerControl(
     fileName: String,
@@ -74,6 +86,45 @@ fun AudioPlayerControl(
         Text(if (isPlaying) "Stop" else "Play")
     }
 }
+
+@Composable
+fun VideoPlayer(uri: Uri) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.Builder().setUri(uri).setMimeType(MimeTypes.VIDEO_MP4).build())
+            prepare()
+            playWhenReady = false
+        }
+    }
+
+    DisposableEffect(key1 = uri) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(vertical = 8.dp)
+    ) {
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    player = exoPlayer
+                    useController = true
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+
+// ----------------------------------------------------------------------
+// PANTALLA PRINCIPAL: NoteDetailScreen
 // ----------------------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,14 +140,8 @@ fun NoteDetailScreen(
     hora: String? = null,
     estado: String? = null
 ) {
-    // 🚨 ÚNICA FUENTE DE CONTEXTO DE ACTIVITY
     val activityContext = LocalContext.current
-
-    // 🚨 ÚNICA FUENTE DEL CONTEXTO DE LA APLICACIÓN para repositorios y BD
     val applicationContextForRepo = activityContext.applicationContext as TodoApplication
-
-    // 🚨 UNIFICACIÓN DE VIEWMODELS
-
 
     val viewModel: NoteDetailViewModel = viewModel(
         factory = NoteViewModelFactory(applicationContextForRepo.repository)
@@ -106,88 +151,114 @@ fun NoteDetailScreen(
         viewModel.initialize(noteId)
     }
 
-    val currentNote = remember {
-        Note(
-            id = noteId,
-            title = title,
-            description = description,
-            imageUri = imageUri,
-            idTipo = idTipo,
-            fechaLimite = fechaLimite,
-            hora = hora,
-            estado = estado
-        )
-    }
-
-    // ----------------------------------------------------------------------
-    // LÓGICA DE GRABACIÓN Y REPRODUCCIÓN (Unidad 8)
-    // ----------------------------------------------------------------------
-
-    // Usamos activityContext para los recursos de Media
-    val recorder = remember { AudioRecorder(activityContext) }
     val audioPlayer = remember { AudioPlayer(activityContext) }
-    var isRecording by remember { mutableStateOf(false) }
 
-    // Asegura la liberación de recursos cuando la pantalla sale
+    val currentNote by viewModel.note.collectAsState()
+    val multimediaList by viewModel.multimediaList.collectAsState()
+
+    // ----------------------------------------------------------------------
+    // LÓGICA DE GRABACIÓN DE AUDIO Y VIDEO
+    // ----------------------------------------------------------------------
+
+    val audioRecorder = remember { AudioRecorder(activityContext) }
+    val videoRecorder = remember { VideoRecorder(activityContext) }
+
+    var isRecordingAudio by remember { mutableStateOf(false) }
+    // ❌ ELIMINADO: tempAudioUri ya no se usa para el lanzador de la cámara
+    // var tempAudioUri by remember { mutableStateOf<Uri?>(null) }
+    var tempVideoUri by remember { mutableStateOf<Uri?>(null) }
+
     DisposableEffect(Unit) {
         onDispose {
             audioPlayer.release()
-            recorder.stop()
+            // Llama a stop por si acaso la grabación se detuvo sin el botón
+            audioRecorder.stop()
         }
     }
 
-
-    val audioPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            val fileName = "audio_${System.currentTimeMillis()}.mp4"
-            recorder.start(fileName)
-            isRecording = true
-        } else {
-            // Permiso Denegado
+    // ❌ ELIMINADO: audioLauncher ya no se usa para el audio
+    /* val audioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        if (success) {
+            tempAudioUri?.let { uri ->
+                val fileName = uri.pathSegments.last()
+                val newMultimedia = Multimedia(
+                    notaId = currentNote.id,
+                    uriArchivo = fileName,
+                    tipo = "AUDIO"
+                )
+                viewModel.insertMultimedia(newMultimedia)
+            }
         }
+        isRecordingAudio = false
+        tempAudioUri = null
+    }
+    */
+
+    // --- LANZADOR DE VIDEO
+    val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        if (success) {
+            tempVideoUri?.let { uri ->
+                val fileName = uri.pathSegments.last()
+                val newMultimedia = Multimedia(
+                    notaId = currentNote.id,
+                    uriArchivo = fileName,
+                    tipo = "VIDEO"
+                )
+                viewModel.insertMultimedia(newMultimedia)
+            }
+        }
+        tempVideoUri = null
     }
 
-    val startRecordingFlow: () -> Unit = {
+    // 🟢 NUEVO FLUJO DE AUDIO (TOGGLE INTERNO)
+    val startStopRecordingAudioFlow: () -> Unit = {
         when {
-            // Usamos activityContext para checkSelfPermission
+            isRecordingAudio -> {
+                // 🛑 Lógica de DETENER (Stop)
+                val fileName = audioRecorder.stop()
+                if (!fileName.isNullOrBlank()) {
+                    val newMultimedia = Multimedia(
+                        notaId = currentNote.id,
+                        uriArchivo = fileName,
+                        tipo = "AUDIO"
+                    )
+                    viewModel.insertMultimedia(newMultimedia)
+                }
+                isRecordingAudio = false
+            }
+            // 🟢 Lógica de INICIAR (Start)
             ContextCompat.checkSelfPermission(
-                activityContext,
-                Manifest.permission.RECORD_AUDIO
+                activityContext, Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
-                val fileName = "audio_${System.currentTimeMillis()}.mp4"
-                recorder.start(fileName)
-                isRecording = true
+                val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                val audioFileName = "AUD_${timeStamp}.mp4"
+
+                audioRecorder.start(audioFileName)
+                isRecordingAudio = true
             }
-            else -> {
-                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-            }
+            else -> { /* Solicitar permiso */ }
         }
     }
 
-    val stopRecordingFlow: () -> Unit = {
-        val fileName = recorder.stop()
-        isRecording = false
-        if (fileName != null) {
-            val newMultimedia = Multimedia(
-                notaId = noteId,
-                uriArchivo = fileName,
-                tipo = "AUDIO"
-            )
-            viewModel.insertMultimedia(newMultimedia)
+    // --- FLUJO DE INICIO DE GRABACIÓN DE VIDEO (CORREGIDO CON ?.let)
+    val startRecordingVideoFlow: () -> Unit = {
+        when {
+            ContextCompat.checkSelfPermission(
+                activityContext, Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                tempVideoUri = videoRecorder.createVideoFileUri()
+                // 🚨 Corrección de URI: lanzar solo si no es nula
+                tempVideoUri?.let { uri ->
+                    videoLauncher.launch(uri)
+                }
+            }
+            else -> { /* Solicitar permiso */ }
         }
     }
-
-    // Lista observable de archivos multimedia
-    val multimediaList by viewModel.multimediaList.collectAsState()
-
-
-
 
 
     // ----------------------------------------------------------------------
-    // Aquí comienza el Scaffold
+    // SCAFFOLD
     // ----------------------------------------------------------------------
 
     Scaffold(
@@ -195,11 +266,20 @@ fun NoteDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (idTipo == 1) "Detalle de Nota" else "Detalle de Tarea",
+                        if (currentNote.idTipo == 1) "Detalle de Nota" else "Detalle de Tarea",
                         color = Color.White
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212)),
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.volver),
+                            tint = Color.White
+                        )
+                    }
+                }
             )
         },
         containerColor = Color(0xFF121212)
@@ -207,38 +287,55 @@ fun NoteDetailScreen(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
-                .fillMaxSize(),
+                .padding(horizontal = 16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("${stringResource(R.string.titulo)}: ${currentNote.title}", style = MaterialTheme.typography.titleLarge, color = Color.White)
             Text("Descripción: ${currentNote.description}", color = Color.White)
 
-            if (idTipo == 2) {
+            if (currentNote.idTipo == 2) {
                 Text("${stringResource(R.string.fecha_límite)}: ${currentNote.fechaLimite ?: "-"}", color = Color.White)
                 Text("${stringResource(R.string.hora)}: ${currentNote.hora ?: "-"}", color = Color.White)
                 Text("${stringResource(R.string.estado)}: ${currentNote.estado ?: "Pendiente"}", color = Color.White)
             }
+
+            // Botón para Recordatorio
             Button(
                 onClick = {
-                    navController.navigate("addRecordatorio/$noteId")
+                    navController.navigate("addRecordatorio/${currentNote.id}")
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
             ) {
                 Text("Agregar recordatorio")
             }
-            // Botón de Grabación
-            Button(
-                onClick = {
-                    if (isRecording) stopRecordingFlow() else startRecordingFlow()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isRecording) Color.Red else Color.Green
-                )
+
+            // ----------------------------------------------------------------------
+            // BOTONES DE GRABACIÓN (AUDIO Y VIDEO)
+            // ----------------------------------------------------------------------
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Text(if (isRecording) "Detener Grabación" else "Grabar Audio")
+                Button(
+                    onClick = startStopRecordingAudioFlow, // ⬅️ Usando el flujo de toggle corregido
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isRecordingAudio) Color.Red else Color.Green
+                    )
+                ) {
+                    Text(if (isRecordingAudio) "Detener Grabación" else "Grabar Audio")
+                }
+
+                Button(
+                    onClick = startRecordingVideoFlow,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
+                ) {
+                    Text("Grabar Video")
+                }
             }
+
 
             // ----------------------------------------------------------------------
             // VISUALIZACIÓN DE MULTIMEDIA
@@ -252,37 +349,44 @@ fun NoteDetailScreen(
                 Text("No hay archivos multimedia adjuntos.", color = Color.Gray)
             } else {
                 multimediaList.forEach { multimedia ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${multimedia.tipo}: ${multimedia.uriArchivo}",
-                            color = Color.LightGray,
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        // Muestra el control de reproducción si es AUDIO
-                        if (multimedia.tipo == "AUDIO") {
-                            AudioPlayerControl(
-                                fileName = multimedia.uriArchivo,
-                                player = audioPlayer
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${multimedia.tipo}: ${multimedia.uriArchivo.takeLast(20)}",
+                                color = Color.LightGray,
+                                modifier = Modifier.weight(1f)
                             )
+
+                            if (multimedia.tipo == "AUDIO") {
+                                AudioPlayerControl(
+                                    fileName = multimedia.uriArchivo,
+                                    player = audioPlayer
+                                )
+                            }
+
+                            Button(
+                                onClick = {
+                                    viewModel.deleteMultimedia(multimedia, applicationContextForRepo.filesDir)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Eliminar",
+                                    tint = Color.Red
+                                )
+                            }
                         }
 
-                        IconButton(
-                            onClick = {
-                                // Asegúrate de que el contexto para eliminar archivos use el context.filesDir que es el de la aplicación
-                                viewModel.deleteMultimedia(multimedia, applicationContextForRepo.filesDir)
-                            }
-                        ) {
-                            Icon(
-                                // ✅ CORRECCIÓN APLICADA AQUÍ: Se cambió ImageVector.vectorResource(id = android.R.drawable.ic_delete)
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar",
-                                tint = Color.Red
-                            )
+                        // Muestra el reproductor de video
+                        if (multimedia.tipo == "VIDEO") {
+                            // Construye la URI del archivo desde el disco
+                            val videoFile = File(applicationContextForRepo.filesDir, multimedia.uriArchivo)
+                            val videoUri = Uri.fromFile(videoFile)
+                            VideoPlayer(uri = videoUri)
                         }
                     }
                 }
@@ -302,12 +406,13 @@ fun NoteDetailScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            // ... (Row de botones Editar, Eliminar, Regresar)
+            // Botones de acción principales
             Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ... (Botones Editar, Eliminar, Regresar)
+                // Botón Editar
                 Button(
                     onClick = {
                         val titleEncoded = Uri.encode(currentNote.title)
@@ -324,6 +429,7 @@ fun NoteDetailScreen(
                 ) { Text(stringResource(R.string.editar)) }
 
 
+                // Botón Eliminar
                 Button(
                     onClick = {
                         viewModel.deleteNote(currentNote)
@@ -334,10 +440,12 @@ fun NoteDetailScreen(
                     Text(stringResource(R.string.eliminar), color = MaterialTheme.colorScheme.onError)
                 }
 
+                // Botón Regresar
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                     Text(stringResource(R.string.regresar))
                 }
             }
+            Spacer(Modifier.height(20.dp))
         }
     }
 }

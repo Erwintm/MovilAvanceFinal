@@ -17,6 +17,9 @@ interface NoteDao {
     @Query("SELECT * FROM notes ORDER BY id DESC")
     fun getAllNotes(): Flow<List<Note>>
 
+    @Query("SELECT * FROM notes WHERE id = :id")
+    fun getNoteById(id: Int): Flow<Note>
+
     @Query("SELECT * FROM notes WHERE idTipo = 2 ORDER BY fechaLimite ASC")
     fun getAllTasks(): Flow<List<Note>>
 

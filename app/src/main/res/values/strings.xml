@@ -3,6 +3,7 @@
     <string name="app_name">Notas</string>
     <string name="agregar_nota_tarea">Agregar nota/tarea</string>
     <string name="cancelar">Cancelar</string>
+    <string name="volver">Volver</string>
     <string name="agregar_archivos">Agregar archivos</string>
     <string name="agregar">Agregar</string>
     <string name="agregbar">Agregar nota/tarea</string>

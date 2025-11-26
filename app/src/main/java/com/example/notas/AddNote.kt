@@ -145,7 +145,7 @@ fun AddNoteScreen(
                     ) { Text("Cámara", maxLines = 1) }
                 }
 
-               
+
                 Button(
                     onClick = {
                         viewModel.saveNote()

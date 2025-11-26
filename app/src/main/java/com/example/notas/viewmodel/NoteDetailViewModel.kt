@@ -17,27 +17,42 @@ import java.io.File
 class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() {
 
     // ----------------------------------------------------
-    // CORRECCIÓN CLAVE: Inicialización Segura de Multimedia
+    // ESTADOS PRINCIPALES DE DATOS
     // ----------------------------------------------------
 
     // 1. Usamos un flujo mutable para rastrear el ID de la nota (inicialmente 0)
     private val _currentNoteId = MutableStateFlow(0)
 
-    // 2. Inicialización segura de multimediaList (SIEMPRE tiene un valor)
+    // 2. Estado reactivo para la NOTA completa. Se actualiza cada vez que el ID cambia.
+    val note: StateFlow<Note> = _currentNoteId
+        .flatMapLatest { noteId ->
+            if (noteId == 0) {
+                // Devuelve una nota vacía y segura si el ID es 0.
+                flowOf(Note(id = 0, title = "", description = "", idTipo = 1))
+            } else {
+                // Obtenemos el flujo de la nota real del repositorio.
+                repository.getNoteById(noteId)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = Note(id = 0, title = "", description = "", idTipo = 1)
+        )
+
+    // 3. Estado reactivo para la lista de MULTIMEDIA
     val multimediaList: StateFlow<List<Multimedia>> = _currentNoteId
         .flatMapLatest { noteId ->
             if (noteId == 0) {
-                // Si el ID es 0, devuelve un flujo vacío para evitar errores.
                 flowOf(emptyList())
             } else {
-                // Si el ID es válido, obtenemos el flujo real del repositorio.
                 repository.getMultimediaForNota(noteId)
             }
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList() // Siempre comienza con una lista vacía segura.
+            initialValue = emptyList()
         )
 
     // ----------------------------------------------------
@@ -52,13 +67,10 @@ class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() 
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             // NOTA: Implementar lógica para eliminar archivos multimedia asociados
-            // antes de eliminar la nota si es necesario.
+            // antes de eliminar la nota si es necesario. (Esto ya está cubierto si usas deleteMultimedia)
             repository.delete(note)
         }
     }
-
-    // NOTA: Si tenías 'updateStatus', asegúrate de agregarlo aquí si lo necesitas.
-    // fun updateStatus(note: Note, newStatus: String) { ... }
 
     /**
      * Elimina un archivo multimedia de la BD y, crucialmente, del disco.
@@ -67,11 +79,15 @@ class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() 
         viewModelScope.launch {
             // 1. Eliminar el archivo físico del disco (Requisito: Archivos)
             try {
+                // Para Audio/Video: están en filesDir (debes usar contextFilesDir)
+                // Para Imagen de Galería: La URI es externa, no se elimina del disco.
+                // Asumo que solo Audio y Video se guardan en filesDir
                 val fileToDelete = File(contextFilesDir, multimedia.uriArchivo)
                 if (fileToDelete.exists()) {
                     fileToDelete.delete()
                 }
             } catch (e: Exception) {
+                // Manejar error de eliminación de archivo
                 e.printStackTrace()
             }
 
