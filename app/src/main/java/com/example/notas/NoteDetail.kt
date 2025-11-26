@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.notas.data.Note
-import androidx.compose.ui.platform.LocalContext // <-- Importado
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notas.viewmodel.NoteDetailViewModel
@@ -27,8 +27,6 @@ import androidx.core.content.ContextCompat
 import com.example.notas.utils.AudioRecorder
 import com.example.notas.data.Multimedia
 import com.example.notas.utils.AudioPlayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import com.example.notas.data.Recordatorio
@@ -91,16 +89,19 @@ fun NoteDetailScreen(
     hora: String? = null,
     estado: String? = null
 ) {
-
-
-    // 🚨 CORRECCIÓN CLAVE (PLAN B): Usamos el contexto de la Activity (LocalContext.current)
+    // 🚨 ÚNICA FUENTE DE CONTEXTO DE ACTIVITY
     val activityContext = LocalContext.current
 
-    // Obtenemos el repositorio del contexto de la aplicación, que es más seguro para la BD
-    val applicationForRepo = activityContext.applicationContext as TodoApplication
+    // 🚨 ÚNICA FUENTE DEL CONTEXTO DE LA APLICACIÓN para repositorios y BD
+    val applicationContextForRepo = activityContext.applicationContext as TodoApplication
+
+    // 🚨 UNIFICACIÓN DE VIEWMODELS
+    val recordatorioViewModel: RecordatorioViewModel = viewModel(
+        factory = RecordatorioViewModelFactory(applicationContextForRepo.recordatorioRepository)
+    )
 
     val viewModel: NoteDetailViewModel = viewModel(
-        factory = NoteViewModelFactory(applicationForRepo.repository)
+        factory = NoteViewModelFactory(applicationContextForRepo.repository)
     )
 
     LaunchedEffect(key1 = noteId) {
@@ -124,7 +125,7 @@ fun NoteDetailScreen(
     // LÓGICA DE GRABACIÓN Y REPRODUCCIÓN (Unidad 8)
     // ----------------------------------------------------------------------
 
-    // 🚨 Usamos activityContext para los recursos de Media
+    // Usamos activityContext para los recursos de Media
     val recorder = remember { AudioRecorder(activityContext) }
     val audioPlayer = remember { AudioPlayer(activityContext) }
     var isRecording by remember { mutableStateOf(false) }
@@ -152,7 +153,7 @@ fun NoteDetailScreen(
 
     val startRecordingFlow: () -> Unit = {
         when {
-            // 🚨 Usamos activityContext para checkSelfPermission
+            // Usamos activityContext para checkSelfPermission
             ContextCompat.checkSelfPermission(
                 activityContext,
                 Manifest.permission.RECORD_AUDIO
@@ -183,9 +184,69 @@ fun NoteDetailScreen(
     // Lista observable de archivos multimedia
     val multimediaList by viewModel.multimediaList.collectAsState()
 
+    val recordatorios by recordatorioViewModel
+        .getRecordatoriosByNota(noteId)
+        .collectAsState(initial = emptyList())
 
+    Button(onClick = {
+        recordatorioViewModel.insert(
+            Recordatorio(
+                titulo = "Nuevo recordatorio",
+                descripcion = "",
+                fechaRecordatorio = System.currentTimeMillis() + 3600000,
+                notaId = noteId
+            )
+        )
+    }) {
+        Text("Agregar recordatorio")
+    }
 
+    Spacer(modifier = Modifier.height(16.dp))
 
+    Text(
+        "Recordatorios (${recordatorios.size}):",
+        color = Color.White,
+        fontSize = 18.sp
+    )
+
+    Divider(color = Color.Gray)
+
+    if (recordatorios.isEmpty()) {
+        Text(
+            "No hay recordatorios para esta nota.",
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 6.dp)
+        )
+    } else {
+        recordatorios.forEach { r ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Text("Título: ${r.titulo}", color = Color.White)
+                Text("Descripción: ${r.descripcion}", color = Color.LightGray)
+                Text("Fecha: ${Date(r.fechaRecordatorio)}", color = Color.Gray)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = { recordatorioViewModel.delete(r) }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            tint = Color.Red
+                        )
+                    }
+                }
+            }
+        }
+    }
+    // ----------------------------------------------------------------------
+    // Aquí comienza el Scaffold
     // ----------------------------------------------------------------------
 
     Scaffold(
@@ -265,11 +326,12 @@ fun NoteDetailScreen(
                         IconButton(
                             onClick = {
                                 // Asegúrate de que el contexto para eliminar archivos use el context.filesDir que es el de la aplicación
-                                viewModel.deleteMultimedia(multimedia, applicationForRepo.filesDir)
+                                viewModel.deleteMultimedia(multimedia, applicationContextForRepo.filesDir)
                             }
                         ) {
                             Icon(
-                                imageVector = ImageVector.vectorResource(id = android.R.drawable.ic_delete),
+                                // ✅ CORRECCIÓN APLICADA AQUÍ: Se cambió ImageVector.vectorResource(id = android.R.drawable.ic_delete)
+                                imageVector = Icons.Default.Delete,
                                 contentDescription = "Eliminar",
                                 tint = Color.Red
                             )
@@ -327,9 +389,6 @@ fun NoteDetailScreen(
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                     Text(stringResource(R.string.regresar))
                 }
-
-
-
             }
         }
     }
