@@ -34,9 +34,14 @@ import com.example.notas.viewmodel.MainViewModel
 
 // 🚨 IMPORTACIONES NECESARIAS PARA PERMISOS
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.pm.PackageManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
+import com.example.notas.alarmas.AlarmSchedulerImpl
 import com.example.notas.viewmodel.RecordatorioViewModel
 
 // ----------------------------------------------------------------------------------
@@ -47,6 +52,22 @@ class MainActivity : ComponentActivity() {
     // ✅ LISTA DE PERMISOS COMPLETADA:
     // 1. RECORD_AUDIO y CAMERA (Multimedia)
     // 2. POST_NOTIFICATIONS (Notificaciones de Recordatorios, para Android 13+)
+    //Creación del canal
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "alarm_channel", // mismo ID que uses en AlarmReceiver
+                "Alarmas y Recordatorios",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Canal para recordatorios exactos"
+            }
+
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
     private val PERMISSIONS = arrayOf(
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.CAMERA,
@@ -60,7 +81,7 @@ class MainActivity : ComponentActivity() {
 
         // 🚨 1. Solicitar permisos críticos al inicio
         requestCriticalPermissions()
-
+        createNotificationChannel()
         enableEdgeToEdge()
         setContent {
             val windowSize = calculateWindowSizeClass(this)
@@ -102,6 +123,7 @@ class MainActivity : ComponentActivity() {
 // EL RESTO DE TUS COMPOSABLES SE MANTIENEN AQUÍ (MyApp, MainScreen, etc.)
 // ----------------------------------------------------------------------------------
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MyApp(windowSize: WindowWidthSizeClass) {
     val navController = rememberNavController()
@@ -207,7 +229,8 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                     AddRecordatorioScreen(
                         navController = navController,
                         noteId = noteId,
-                        recordatorioViewModel = recordatorioViewModel
+                        recordatorioViewModel = recordatorioViewModel,
+                        alarmScheduler = AlarmSchedulerImpl(LocalContext.current)
                     )
                 }
 
@@ -321,7 +344,9 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 AddRecordatorioScreen(
                                     navController = navController,
                                     noteId = noteId,
-                                    recordatorioViewModel = recordatorioViewModel
+                                    recordatorioViewModel = recordatorioViewModel,
+                                    alarmScheduler = AlarmSchedulerImpl(LocalContext.current)
+
                                 )
                             }
 
