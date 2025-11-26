@@ -91,11 +91,7 @@ fun NoteDetailScreen(
     hora: String? = null,
     estado: String? = null
 ) {
-    val app = LocalContext.current.applicationContext as TodoApplication
 
-    val recordatorioViewModel: RecordatorioViewModel = viewModel(
-        factory = RecordatorioViewModelFactory(app.recordatorioRepository)
-    )
 
     // 🚨 CORRECCIÓN CLAVE (PLAN B): Usamos el contexto de la Activity (LocalContext.current)
     val activityContext = LocalContext.current
@@ -187,9 +183,7 @@ fun NoteDetailScreen(
     // Lista observable de archivos multimedia
     val multimediaList by viewModel.multimediaList.collectAsState()
 
-    val recordatorios by recordatorioViewModel
-        .getRecordatoriosByNota(noteId)
-        .collectAsState(initial = emptyList())
+
 
 
     // ----------------------------------------------------------------------
@@ -224,55 +218,7 @@ fun NoteDetailScreen(
                 Text("${stringResource(R.string.hora)}: ${currentNote.hora ?: "-"}", color = Color.White)
                 Text("${stringResource(R.string.estado)}: ${currentNote.estado ?: "Pendiente"}", color = Color.White)
             }
-            Button(
-                onClick = {
-                    recordatorioViewModel.insert(
-                        Recordatorio(
-                            titulo = "Nuevo recordatorio",
-                            descripcion = "Realizar ${currentNote.description}",
-                            fechaRecordatorio = System.currentTimeMillis() + 3600000, // +1 hora
-                            notaId = noteId
-                        )
-                    )
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
-            ) {
-                Text("Agregar recordatorio")
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-
-            Text("Recordatorios (${recordatorios.size}):", color = Color.White)
-            Divider(color = Color.Gray)
-
-            if (recordatorios.isEmpty()) {
-                Text("No hay recordatorios para esta nota.", color = Color.Gray)
-            } else {
-                recordatorios.forEach { r ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(6.dp)
-                            .background(Color(0xFF7E57C2))
-                            .padding(10.dp)
-                    ) {
-                        Text("Título: ${r.titulo}", color = Color.White)
-                        Text("Descripción: ${r.descripcion}", color = Color.LightGray)
-                        Text("Fecha: ${Date(r.fechaRecordatorio)}", color = Color.Gray)
-
-                        Row(horizontalArrangement = Arrangement.End) {
-                            IconButton(onClick = { recordatorioViewModel.delete(r) }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Eliminar recordatorio",
-                                    tint = Color.Red
-                                )
-                            }
-                        }
-                    }
-                }
-            }
             // Botón de Grabación
             Button(
                 onClick = {
