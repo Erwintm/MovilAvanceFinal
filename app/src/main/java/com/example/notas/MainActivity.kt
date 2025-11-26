@@ -37,6 +37,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
+import com.example.notas.viewmodel.RecordatorioViewModel
+
 // ----------------------------------------------------------------------------------
 
 
@@ -188,6 +190,25 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                         estado
                     )
                 }
+                composable(
+                    route = "addRecordatorio/{noteId}",
+                    arguments = listOf(navArgument("noteId") { type = NavType.IntType })
+                ) { backStackEntry ->
+
+                    val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+                    val context = LocalContext.current.applicationContext as TodoApplication
+
+                    val recordatorioViewModel: RecordatorioViewModel =
+                        viewModel(factory = RecordatorioViewModelFactory(context.recordatorioRepository))
+
+                    AddRecordatorioScreen(
+                        navController = navController,
+                        noteId = noteId,
+                        recordatorioViewModel = recordatorioViewModel
+                    )
+                }
+
+
             }
         }
         // Pantalla mediana y grande
@@ -283,6 +304,24 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                     estado
                                 )
                             }
+                            composable(
+                                route = "addRecordatorio/{noteId}",
+                                arguments = listOf(navArgument("noteId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+
+                                val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+                                val context = LocalContext.current.applicationContext as TodoApplication
+
+                                val recordatorioViewModel: RecordatorioViewModel =
+                                    viewModel(factory = RecordatorioViewModelFactory(context.recordatorioRepository))
+
+                                AddRecordatorioScreen(
+                                    navController = navController,
+                                    noteId = noteId,
+                                    recordatorioViewModel = recordatorioViewModel
+                                )
+                            }
+
                         }
                     }
                     Column(
