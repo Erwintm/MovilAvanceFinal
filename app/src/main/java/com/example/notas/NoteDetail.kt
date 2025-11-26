@@ -96,9 +96,7 @@ fun NoteDetailScreen(
     val applicationContextForRepo = activityContext.applicationContext as TodoApplication
 
     // 🚨 UNIFICACIÓN DE VIEWMODELS
-    val recordatorioViewModel: RecordatorioViewModel = viewModel(
-        factory = RecordatorioViewModelFactory(applicationContextForRepo.recordatorioRepository)
-    )
+
 
     val viewModel: NoteDetailViewModel = viewModel(
         factory = NoteViewModelFactory(applicationContextForRepo.repository)
@@ -184,67 +182,9 @@ fun NoteDetailScreen(
     // Lista observable de archivos multimedia
     val multimediaList by viewModel.multimediaList.collectAsState()
 
-    val recordatorios by recordatorioViewModel
-        .getRecordatoriosByNota(noteId)
-        .collectAsState(initial = emptyList())
 
-    Button(onClick = {
-        recordatorioViewModel.insert(
-            Recordatorio(
-                titulo = "Nuevo recordatorio",
-                descripcion = "",
-                fechaRecordatorio = System.currentTimeMillis() + 3600000,
-                notaId = noteId
-            )
-        )
-    }) {
-        Text("Agregar recordatorio")
-    }
 
-    Spacer(modifier = Modifier.height(16.dp))
 
-    Text(
-        "Recordatorios (${recordatorios.size}):",
-        color = Color.White,
-        fontSize = 18.sp
-    )
-
-    Divider(color = Color.Gray)
-
-    if (recordatorios.isEmpty()) {
-        Text(
-            "No hay recordatorios para esta nota.",
-            color = Color.Gray,
-            modifier = Modifier.padding(top = 6.dp)
-        )
-    } else {
-        recordatorios.forEach { r ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-            ) {
-                Text("Título: ${r.titulo}", color = Color.White)
-                Text("Descripción: ${r.descripcion}", color = Color.LightGray)
-                Text("Fecha: ${Date(r.fechaRecordatorio)}", color = Color.Gray)
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    IconButton(onClick = { recordatorioViewModel.delete(r) }) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            tint = Color.Red
-                        )
-                    }
-                }
-            }
-        }
-    }
     // ----------------------------------------------------------------------
     // Aquí comienza el Scaffold
     // ----------------------------------------------------------------------
