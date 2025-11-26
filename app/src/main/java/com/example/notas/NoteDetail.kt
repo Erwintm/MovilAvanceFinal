@@ -222,9 +222,9 @@ fun NoteDetailScreen(
             }
             Button(
                 onClick = {
-                    navController.navigate("add_recordatorio/$noteId")
+                    navController.navigate("addRecordatorio/$noteId")
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
             ) {
                 Text("Agregar recordatorio")
             }
