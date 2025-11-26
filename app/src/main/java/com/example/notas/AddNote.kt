@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import androidx.core.content.FileProvider
 import java.io.File
 import android.content.Context
+import androidx.compose.foundation.background
 
 // ------------------------------------------------------------------
 // FUNCIÓN UTILITARIA PARA CREAR URI TEMPORAL DE LA CÁMARA
@@ -95,6 +96,10 @@ fun AddNoteScreen(
         cameraUri = null
     }
 
+    // AddNote.kt - Dentro de AddNoteScreen()
+
+// ...
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -102,43 +107,59 @@ fun AddNoteScreen(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121212))
             )
         },
+        // 🚨 BOTTOM BAR CON DOS FILAS PARA MEJOR LEGIBILIDAD
         bottomBar = {
-            BottomAppBar(containerColor = Color(0xFF121212)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF121212))
+                    .padding(horizontal = 8.dp, vertical = 4.dp) // Pequeño padding general
+            ) {
+                // Fila 1: Botones de Utilidad (Cancelar, Galería, Cámara)
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Botón Cancelar (Peso 1f)
                     OutlinedButton(
                         onClick = onCancel,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
-                    ) { Text(stringResource(R.string.cancelar)) }
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2)),
+                        modifier = Modifier.weight(1f).padding(end = 4.dp)
+                    ) { Text(stringResource(R.string.cancelar), maxLines = 1) }
 
-                    // BOTÓN PARA ABRIR GALERÍA
-                    Button(onClick = { galleryLauncher.launch("image/*") }) { Text("Abrir Galería") }
+                    // Botón Abrir Galería (Peso 1f)
+                    Button(
+                        onClick = { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+                    ) { Text("Galería", maxLines = 1) }
 
-                    // BOTÓN PARA TOMAR FOTO
+                    // Botón Tomar Foto (Peso 1f)
                     Button(
                         onClick = {
                             val newUri = createImageFileUri(context)
                             cameraUri = newUri // Almacenamos la URI temporal en el estado
                             cameraLauncher.launch(newUri) // Lanzamos la cámara
-                        }
-                    ) { Text("Tomar Foto") }
-
-                    // BOTÓN GUARDAR
-                    Button(
-                        onClick = {
-                            viewModel.saveNote()
-                            onSaveComplete()
                         },
-                        enabled = viewModel.isEntryValid
-                    ) { Text(stringResource(R.string.agregar)) }
+                        modifier = Modifier.weight(1f).padding(start = 4.dp)
+                    ) { Text("Cámara", maxLines = 1) }
+                }
+
+               
+                Button(
+                    onClick = {
+                        viewModel.saveNote()
+                        onSaveComplete()
+                    },
+                    enabled = viewModel.isEntryValid,
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text(stringResource(R.string.agregar))
                 }
             }
         },
         containerColor = Color(0xFF121212)
     ) { innerPadding ->
-        // ... (Resto del contenido de la columna de la UI - No ha cambiado)
         Column(
             modifier = Modifier
                 .padding(innerPadding)
