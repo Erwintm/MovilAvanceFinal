@@ -45,7 +45,7 @@ import androidx.compose.runtime.DisposableEffect
 
 
 // ----------------------------------------------------------------------
-// COMPONENTES DE REPRODUCCIÓN
+// COMPONENTES DE REPRODUCCIÓN (Sin cambios)
 // ----------------------------------------------------------------------
 
 @Composable
@@ -164,53 +164,51 @@ fun NoteDetailScreen(
     val videoRecorder = remember { VideoRecorder(activityContext) }
 
     var isRecordingAudio by remember { mutableStateOf(false) }
-    // ❌ ELIMINADO: tempAudioUri ya no se usa para el lanzador de la cámara
-    // var tempAudioUri by remember { mutableStateOf<Uri?>(null) }
     var tempVideoUri by remember { mutableStateOf<Uri?>(null) }
 
     DisposableEffect(Unit) {
         onDispose {
             audioPlayer.release()
-            // Llama a stop por si acaso la grabación se detuvo sin el botón
             audioRecorder.stop()
         }
     }
 
-    // ❌ ELIMINADO: audioLauncher ya no se usa para el audio
-    /* val audioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
-        if (success) {
-            tempAudioUri?.let { uri ->
-                val fileName = uri.pathSegments.last()
-                val newMultimedia = Multimedia(
-                    notaId = currentNote.id,
-                    uriArchivo = fileName,
-                    tipo = "AUDIO"
-                )
-                viewModel.insertMultimedia(newMultimedia)
-            }
-        }
-        isRecordingAudio = false
-        tempAudioUri = null
-    }
-    */
-
-    // --- LANZADOR DE VIDEO
+    // --- LANZADOR DE VIDEO (CORRECCIÓN IMPLEMENTADA AQUÍ)
     val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
         if (success) {
-            tempVideoUri?.let { uri ->
-                val fileName = uri.pathSegments.last()
-                val newMultimedia = Multimedia(
-                    notaId = currentNote.id,
-                    uriArchivo = fileName,
-                    tipo = "VIDEO"
-                )
-                viewModel.insertMultimedia(newMultimedia)
+            // 🟢 OBTENEMOS EL ARCHIVO TEMPORAL
+            val tempFile = videoRecorder.getTempVideoFile() // Necesita la función getTempVideoFile() en VideoRecorder.kt
+
+            if (tempFile != null && tempFile.exists()) {
+                val permanentFileName = tempFile.name
+                // Definimos la ruta de destino permanente (filesDir)
+                val destinationFile = File(applicationContextForRepo.filesDir, permanentFileName)
+
+                try {
+                    // 🟢 ¡PASO CRÍTICO! Mover/Copiar el archivo de caché a archivos internos
+                    // copyTo lo copia, y lo movemos (renombramos) si queremos.
+                    // Usaremos copyTo y luego delete para asegurar que se mueva correctamente.
+                    tempFile.copyTo(destinationFile, overwrite = true)
+                    tempFile.delete() // Eliminamos el archivo temporal del caché
+
+                    // Ahora insertamos la multimedia apuntando al archivo PERMANENTE
+                    val newMultimedia = Multimedia(
+                        notaId = currentNote.id,
+                        uriArchivo = permanentFileName, // El nombre ahora apunta a filesDir
+                        tipo = "VIDEO"
+                    )
+                    viewModel.insertMultimedia(newMultimedia)
+
+                } catch (e: Exception) {
+                    // Manejo de errores de copia o movimiento
+                    e.printStackTrace()
+                }
             }
         }
         tempVideoUri = null
     }
 
-    // 🟢 NUEVO FLUJO DE AUDIO (TOGGLE INTERNO)
+    // 🟢 NUEVO FLUJO DE AUDIO (TOGGLE INTERNO) - Sin cambios, funciona con AudioRecorder.start/stop
     val startStopRecordingAudioFlow: () -> Unit = {
         when {
             isRecordingAudio -> {
@@ -240,14 +238,13 @@ fun NoteDetailScreen(
         }
     }
 
-    // --- FLUJO DE INICIO DE GRABACIÓN DE VIDEO (CORREGIDO CON ?.let)
+    // --- FLUJO DE INICIO DE GRABACIÓN DE VIDEO (Sin cambios, usa VideoRecorder.createVideoFileUri)
     val startRecordingVideoFlow: () -> Unit = {
         when {
             ContextCompat.checkSelfPermission(
                 activityContext, Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED -> {
                 tempVideoUri = videoRecorder.createVideoFileUri()
-                // 🚨 Corrección de URI: lanzar solo si no es nula
                 tempVideoUri?.let { uri ->
                     videoLauncher.launch(uri)
                 }
@@ -320,7 +317,7 @@ fun NoteDetailScreen(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 Button(
-                    onClick = startStopRecordingAudioFlow, // ⬅️ Usando el flujo de toggle corregido
+                    onClick = startStopRecordingAudioFlow,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isRecordingAudio) Color.Red else Color.Green
                     )
