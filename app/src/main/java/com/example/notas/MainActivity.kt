@@ -32,7 +32,7 @@ import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
 import com.example.notas.viewmodel.MainViewModel
 
-// 🚨 IMPORTACIONES NECESARIAS PARA PERMISOS DE MICRÓFONO
+// 🚨 IMPORTACIONES NECESARIAS PARA PERMISOS
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
@@ -44,10 +44,13 @@ import com.example.notas.viewmodel.RecordatorioViewModel
 
 class MainActivity : ComponentActivity() {
 
-    // Lista de permisos críticos que necesitamos de inicio
+    // ✅ LISTA DE PERMISOS COMPLETADA:
+    // 1. RECORD_AUDIO y CAMERA (Multimedia)
+    // 2. POST_NOTIFICATIONS (Notificaciones de Recordatorios, para Android 13+)
     private val PERMISSIONS = arrayOf(
         Manifest.permission.RECORD_AUDIO,
-        Manifest.permission.CAMERA
+        Manifest.permission.CAMERA,
+        Manifest.permission.POST_NOTIFICATIONS // 🚨 CORRECCIÓN APLICADA AQUÍ
     )
     private val REQUEST_CODE_PERMISSIONS = 100
 
@@ -55,7 +58,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 🚨 1. Solicitar permisos críticos al inicio (CORRECCIÓN CRÍTICA)
+        // 🚨 1. Solicitar permisos críticos al inicio
         requestCriticalPermissions()
 
         enableEdgeToEdge()

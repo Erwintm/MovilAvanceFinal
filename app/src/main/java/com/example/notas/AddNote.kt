@@ -1,5 +1,6 @@
 package com.example.notas
 
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
@@ -21,18 +22,36 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.notas.data.Note
-
 import com.example.notas.viewmodel.AddNoteViewModel
-import com.example.notas.NoteViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// 🚨 IMPORTACIONES NECESARIAS PARA LA CÁMARA
+import androidx.core.content.FileProvider
+import java.io.File
+import android.content.Context
+
+// ------------------------------------------------------------------
+// FUNCIÓN UTILITARIA PARA CREAR URI TEMPORAL DE LA CÁMARA
+// ------------------------------------------------------------------
+private fun createImageFileUri(context: Context): Uri {
+    // Crea un archivo temporal en el directorio cache de la app
+    val file = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+    // Usa FileProvider para crear una URI que la cámara pueda usar
+    // La autoridad debe coincidir con el AndroidManifest (com.example.notas.fileprovider)
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
+}
+// ------------------------------------------------------------------
+
 
 @Composable
 fun AddNote(navController: NavController) {
     val context = LocalContext.current.applicationContext as TodoApplication
 
-    //jere
     val viewModel: AddNoteViewModel = viewModel(
         factory = NoteViewModelFactory(context.repository)
     )
@@ -51,15 +70,30 @@ fun AddNoteScreen(
     onSaveComplete: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // 1. ESTADO TEMPORAL PARA LA URI DE LA CÁMARA
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        // La UI llama al handler del ViewModel para actualizar el estado
+    // 2. LANZADOR PARA SELECCIONAR IMAGEN DE LA GALERÍA
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         viewModel.updateImageUri(uri?.toString())
     }
 
-    val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
+    // 3. LANZADOR PARA TOMAR FOTO CON LA CÁMARA
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            // Si la foto se tomó con éxito, actualizamos el ViewModel con la URI temporal
+            viewModel.updateImageUri(cameraUri?.toString())
+        }
+        // Limpiamos la URI temporal después de la operación (éxito o fallo)
+        cameraUri = null
+    }
 
     Scaffold(
         topBar = {
@@ -79,16 +113,24 @@ fun AddNoteScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
                     ) { Text(stringResource(R.string.cancelar)) }
 
-                    Button(onClick = { launcher.launch("image/*") }) { Text(stringResource(R.string.agregar_archivos)) }
+                    // BOTÓN PARA ABRIR GALERÍA
+                    Button(onClick = { galleryLauncher.launch("image/*") }) { Text("Abrir Galería") }
 
+                    // BOTÓN PARA TOMAR FOTO
                     Button(
                         onClick = {
-                                //guardar
+                            val newUri = createImageFileUri(context)
+                            cameraUri = newUri // Almacenamos la URI temporal en el estado
+                            cameraLauncher.launch(newUri) // Lanzamos la cámara
+                        }
+                    ) { Text("Tomar Foto") }
+
+                    // BOTÓN GUARDAR
+                    Button(
+                        onClick = {
                             viewModel.saveNote()
-                            //dirige pantalla principal
                             onSaveComplete()
                         },
-
                         enabled = viewModel.isEntryValid
                     ) { Text(stringResource(R.string.agregar)) }
                 }
@@ -96,6 +138,7 @@ fun AddNoteScreen(
         },
         containerColor = Color(0xFF121212)
     ) { innerPadding ->
+        // ... (Resto del contenido de la columna de la UI - No ha cambiado)
         Column(
             modifier = Modifier
                 .padding(innerPadding)
