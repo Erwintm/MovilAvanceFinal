@@ -184,14 +184,7 @@ fun NoteDetailScreen(
 
 
 
-    Button(
-        onClick = {
-            navController.navigate("add_recordatorio/$noteId")
-        },
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-    ) {
-        Text("Agregar recordatorio")
-    }
+
 
     // ----------------------------------------------------------------------
     // Aquí comienza el Scaffold
@@ -227,7 +220,14 @@ fun NoteDetailScreen(
                 Text("${stringResource(R.string.hora)}: ${currentNote.hora ?: "-"}", color = Color.White)
                 Text("${stringResource(R.string.estado)}: ${currentNote.estado ?: "Pendiente"}", color = Color.White)
             }
-
+            Button(
+                onClick = {
+                    navController.navigate("add_recordatorio/$noteId")
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+            ) {
+                Text("Agregar recordatorio")
+            }
             // Botón de Grabación
             Button(
                 onClick = {
