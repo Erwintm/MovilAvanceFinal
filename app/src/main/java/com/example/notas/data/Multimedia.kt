@@ -8,10 +8,10 @@ import androidx.room.PrimaryKey
     tableName = "multimedia",
     foreignKeys = [
         ForeignKey(
-            entity = Note::class, // Enlaza a tu entidad principal Note/Tarea
+            entity = Note::class,
             parentColumns = ["id"],
             childColumns = ["notaId"],
-            onDelete = ForeignKey.CASCADE // Si se elimina la Nota, se eliminan sus archivos multimedia
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )

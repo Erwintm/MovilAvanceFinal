@@ -18,8 +18,7 @@ import androidx.compose.ui.text.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-//Entrada de Parámetros: Al igual que NoteDetailScreen,
-// recibe todos los datos de la nota a editar directamente de la URL de navegación (desde MainActivity).
+
 fun EditNoteScreen(
     navController: NavController,
     noteId: Int,
@@ -49,7 +48,7 @@ fun EditNoteScreen(
             hora = horaInit,
             estado = estadoInit
         )
-        //CARGA DE ESTADO: Llama al ViewModel para precargar todos sus campos internos
+
         viewModel.initializeState(initialNote)
     }
 
@@ -90,7 +89,7 @@ fun EditNoteScreen(
                 textStyle = LocalTextStyle.current.copy(color = Color.White)
             )
 
-// Muestra los campos adicionales solo si el VM indica que es una Tarea.
+
             if (viewModel.seleccionarTipo == "Tasks") {
                 OutlinedTextField(
                     value = viewModel.fechaLimite,
@@ -117,13 +116,13 @@ fun EditNoteScreen(
                 )
             }
 
-            // BOTÓN GUARDAR
+
             Button(
                 onClick = {
 
                     viewModel.updateNote()
 
-// 2. Obtiene el objeto final actualizado (localmente)
+
 
                     val updatedNote = viewModel.buildUpdatedNote()
 

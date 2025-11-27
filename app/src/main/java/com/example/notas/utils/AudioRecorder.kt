@@ -2,14 +2,14 @@ package com.example.notas.utils
 
 import android.content.Context
 import android.media.MediaRecorder
-import android.net.Uri // 👈 Importación requerida
+import android.net.Uri
 import android.os.Build
-import androidx.core.content.FileProvider // 👈 Importación requerida
+import androidx.core.content.FileProvider
 import java.io.File
 import java.lang.RuntimeException
-import java.text.SimpleDateFormat // 👈 Importación requerida
-import java.util.Date // 👈 Importación requerida
-import java.util.Locale // 👈 Importación requerida
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class AudioRecorder(private val context: Context) {
     private var recorder: MediaRecorder? = null
@@ -17,19 +17,18 @@ class AudioRecorder(private val context: Context) {
     // Usamos 'lateinit' para referenciar el archivo de destino.
     private lateinit var outputFile: File
 
-    // 🚨 FUNCIÓN FALTANTE AÑADIDA
+
     /**
      * Crea un archivo temporal con un nombre único para almacenar el audio grabado
      * y devuelve su Uri compatible con FileProvider.
      * Esto permite usar ActivityResultContracts.CaptureVideo() para grabar audio.
      */
     fun createAudioFileUri(): Uri {
-        // Genera un nombre de archivo único con timestamp
+
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val audioFileName = "AUD_${timeStamp}.mp4"
 
-        // Define el archivo dentro del directorio de cache (temporal)
-        // Usamos cacheDir porque es temporal para la cámara. Luego movemos/procesamos el archivo.
+
         val audioFile = File(context.cacheDir, audioFileName)
 
         // Usa FileProvider para obtener una URI segura
@@ -65,11 +64,11 @@ class AudioRecorder(private val context: Context) {
             setOutputFile(outputFile.absolutePath)
 
             try {
-                // El orden PREPARE -> START es CRÍTICO
+
                 prepare()
                 start()
             } catch (e: Exception) {
-                // Si falla al iniciar o preparar, liberamos y limpiamos
+
                 e.printStackTrace()
                 stopAndRelease()
             }
@@ -84,24 +83,22 @@ class AudioRecorder(private val context: Context) {
         var fileExists = false
 
         try {
-            // Detener primero, luego liberar.
+
             recorder?.stop()
             fileExists = if (::outputFile.isInitialized) outputFile.exists() else false
         } catch (e: RuntimeException) {
-            // Captura errores como "stop failed" (grabación demasiado corta)
+
             e.printStackTrace()
         } finally {
-            // Siempre liberar y limpiar en el bloque finally.
+
             stopAndRelease()
         }
 
-        // Devolvemos el nombre del archivo solo si existía y fue inicializado.
+
         return if (fileExists) fileName else null
     }
 
-    /**
-     * Función auxiliar para liberar recursos de forma forzada.
-     */
+
     private fun stopAndRelease() {
         recorder?.release()
         recorder = null

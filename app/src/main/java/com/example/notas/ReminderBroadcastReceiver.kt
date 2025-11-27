@@ -18,10 +18,10 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onReceive(context: Context, intent: Intent) {
-        // 1. Crear el canal de notificación si es necesario (API 26+)
+
         createNotificationChannel(context)
 
-        // 2. Obtener los datos pasados por la alarma
+
         val title = intent.getStringExtra("TITLE") ?: "Recordatorio de Nota"
         val desc = intent.getStringExtra("DESC") ?: "¡Hora de tu tarea o nota pendiente!"
 
@@ -30,15 +30,15 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
 
         // 3. Construir la notificación
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            // 🚨 SOLUCIÓN RÁPIDA: Usar un ícono de recurso de Android que existe en todos los dispositivos
+
             .setSmallIcon(R.drawable.ic_lock_idle_alarm)
-            .setContentTitle(title) // 🚨 SOLUCIONADO
+            .setContentTitle(title)
             .setContentText(desc)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
-        // 4. Mostrar la notificación (El permiso POST_NOTIFICATIONS ahora se pide en MainActivity)
+
         NotificationManagerCompat.from(context).notify(notificationId, notification)
     }
 

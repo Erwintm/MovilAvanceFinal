@@ -32,7 +32,7 @@ import com.example.notas.data.Note
 import com.example.notas.ui.theme.TodoappTheme
 import com.example.notas.viewmodel.MainViewModel
 
-// 🚨 IMPORTACIONES NECESARIAS PARA PERMISOS
+
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -54,10 +54,7 @@ import android.app.AlarmManager
 
 class MainActivity : ComponentActivity() {
 
-    // ✅ LISTA DE PERMISOS COMPLETADA:
-    // 1. RECORD_AUDIO y CAMERA (Multimedia)
-    // 2. POST_NOTIFICATIONS (Notificaciones de Recordatorios, para Android 13+)
-    //Creación del canal
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -76,7 +73,7 @@ class MainActivity : ComponentActivity() {
     private val PERMISSIONS = arrayOf(
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.CAMERA,
-        Manifest.permission.POST_NOTIFICATIONS // 🚨 CORRECCIÓN APLICADA AQUÍ
+        Manifest.permission.POST_NOTIFICATIONS
     )
     private val REQUEST_CODE_PERMISSIONS = 100
 
@@ -84,7 +81,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 🚨 1. Solicitar permisos críticos al inicio
+
         requestCriticalPermissions()
         createNotificationChannel()
         requestExactAlarmPermission()
@@ -129,7 +126,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Opcional: Manejar el resultado de la solicitud de permisos
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
@@ -138,9 +135,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ----------------------------------------------------------------------------------
-// EL RESTO DE TUS COMPOSABLES SE MANTIENEN AQUÍ (MyApp, MainScreen, etc.)
-// ----------------------------------------------------------------------------------
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

@@ -16,14 +16,11 @@ import java.io.File
 
 class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() {
 
-    // ----------------------------------------------------
-    // ESTADOS PRINCIPALES DE DATOS
-    // ----------------------------------------------------
 
-    // 1. Usamos un flujo mutable para rastrear el ID de la nota (inicialmente 0)
+
     private val _currentNoteId = MutableStateFlow(0)
 
-    // 2. Estado reactivo para la NOTA completa. Se actualiza cada vez que el ID cambia.
+    //  Estado reactivo para la NOTA completa. Se actualiza cada vez que el ID cambia.
     val note: StateFlow<Note> = _currentNoteId
         .flatMapLatest { noteId ->
             if (noteId == 0) {
@@ -40,7 +37,7 @@ class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() 
             initialValue = Note(id = 0, title = "", description = "", idTipo = 1)
         )
 
-    // 3. Estado reactivo para la lista de MULTIMEDIA
+    //  Estado reactivo para la lista de MULTIMEDIA
     val multimediaList: StateFlow<List<Multimedia>> = _currentNoteId
         .flatMapLatest { noteId ->
             if (noteId == 0) {
@@ -55,9 +52,7 @@ class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() 
             initialValue = emptyList()
         )
 
-    // ----------------------------------------------------
-    // MÉTODOS DE INICIALIZACIÓN Y ACCIÓN
-    // ----------------------------------------------------
+
 
     // La función initialize solo necesita actualizar el ID.
     fun initialize(noteId: Int) {
@@ -66,20 +61,17 @@ class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() 
 
     fun deleteNote(note: Note) {
         viewModelScope.launch {
-            // NOTA: Implementar lógica para eliminar archivos multimedia asociados
-            // antes de eliminar la nota si es necesario. (Esto ya está cubierto si usas deleteMultimedia)
+
             repository.delete(note)
         }
     }
 
-    /**
-     * Elimina un archivo multimedia de la BD y, crucialmente, del disco.
-     */
+
     fun deleteMultimedia(multimedia: Multimedia, contextFilesDir: File) {
         viewModelScope.launch {
-            // 1. Eliminar el archivo físico del disco (Requisito: Archivos)
+            //  Eliminar el archivo físico del disco (Requisito: Archivos)
             try {
-                // Para Audio/Video: están en filesDir (debes usar contextFilesDir)
+                // Paa Audio/Video: están en filesDir (debes usar contextFilesDir)
                 // Para Imagen de Galería: La URI es externa, no se elimina del disco.
                 // Asumo que solo Audio y Video se guardan en filesDir
                 val fileToDelete = File(contextFilesDir, multimedia.uriArchivo)
@@ -91,7 +83,7 @@ class NoteDetailViewModel(private val repository: NoteRepository) : ViewModel() 
                 e.printStackTrace()
             }
 
-            // 2. Eliminar el registro de la base de datos (CRUD n Multimedia)
+            // iminar el registro de la base de datos (CRUD n Multimedia)
             repository.deleteMultimedia(multimedia)
         }
     }

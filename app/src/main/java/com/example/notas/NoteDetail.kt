@@ -31,7 +31,7 @@ import com.example.notas.utils.AudioPlayer
 import com.example.notas.utils.VideoRecorder
 import androidx.compose.ui.viewinterop.AndroidView
 
-// 🚨 Importaciones necesarias para la generación de nombre de archivo y reproductor
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -44,9 +44,6 @@ import java.io.File
 import androidx.compose.runtime.DisposableEffect
 
 
-// ----------------------------------------------------------------------
-// COMPONENTES DE REPRODUCCIÓN (Sin cambios)
-// ----------------------------------------------------------------------
 
 @Composable
 fun AudioPlayerControl(
@@ -173,34 +170,32 @@ fun NoteDetailScreen(
         }
     }
 
-    // --- LANZADOR DE VIDEO (CORRECCIÓN IMPLEMENTADA AQUÍ)
+
     val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
         if (success) {
             // 🟢 OBTENEMOS EL ARCHIVO TEMPORAL
-            val tempFile = videoRecorder.getTempVideoFile() // Necesita la función getTempVideoFile() en VideoRecorder.kt
+            val tempFile = videoRecorder.getTempVideoFile()
 
             if (tempFile != null && tempFile.exists()) {
                 val permanentFileName = tempFile.name
-                // Definimos la ruta de destino permanente (filesDir)
+
                 val destinationFile = File(applicationContextForRepo.filesDir, permanentFileName)
 
                 try {
-                    // 🟢 ¡PASO CRÍTICO! Mover/Copiar el archivo de caché a archivos internos
-                    // copyTo lo copia, y lo movemos (renombramos) si queremos.
-                    // Usaremos copyTo y luego delete para asegurar que se mueva correctamente.
-                    tempFile.copyTo(destinationFile, overwrite = true)
-                    tempFile.delete() // Eliminamos el archivo temporal del caché
 
-                    // Ahora insertamos la multimedia apuntando al archivo PERMANENTE
+                    tempFile.copyTo(destinationFile, overwrite = true)
+                    tempFile.delete()
+
+
                     val newMultimedia = Multimedia(
                         notaId = currentNote.id,
-                        uriArchivo = permanentFileName, // El nombre ahora apunta a filesDir
+                        uriArchivo = permanentFileName,
                         tipo = "VIDEO"
                     )
                     viewModel.insertMultimedia(newMultimedia)
 
                 } catch (e: Exception) {
-                    // Manejo de errores de copia o movimiento
+
                     e.printStackTrace()
                 }
             }
@@ -208,11 +203,11 @@ fun NoteDetailScreen(
         tempVideoUri = null
     }
 
-    // 🟢 NUEVO FLUJO DE AUDIO (TOGGLE INTERNO) - Sin cambios, funciona con AudioRecorder.start/stop
+
     val startStopRecordingAudioFlow: () -> Unit = {
         when {
             isRecordingAudio -> {
-                // 🛑 Lógica de DETENER (Stop)
+
                 val fileName = audioRecorder.stop()
                 if (!fileName.isNullOrBlank()) {
                     val newMultimedia = Multimedia(
@@ -224,7 +219,7 @@ fun NoteDetailScreen(
                 }
                 isRecordingAudio = false
             }
-            // 🟢 Lógica de INICIAR (Start)
+
             ContextCompat.checkSelfPermission(
                 activityContext, Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
@@ -234,11 +229,11 @@ fun NoteDetailScreen(
                 audioRecorder.start(audioFileName)
                 isRecordingAudio = true
             }
-            else -> { /* Solicitar permiso */ }
+            else -> {  }
         }
     }
 
-    // --- FLUJO DE INICIO DE GRABACIÓN DE VIDEO (Sin cambios, usa VideoRecorder.createVideoFileUri)
+
     val startRecordingVideoFlow: () -> Unit = {
         when {
             ContextCompat.checkSelfPermission(
@@ -254,9 +249,6 @@ fun NoteDetailScreen(
     }
 
 
-    // ----------------------------------------------------------------------
-    // SCAFFOLD
-    // ----------------------------------------------------------------------
 
     Scaffold(
         topBar = {
@@ -309,9 +301,7 @@ fun NoteDetailScreen(
                 Text("Agregar recordatorio")
             }
 
-            // ----------------------------------------------------------------------
-            // BOTONES DE GRABACIÓN (AUDIO Y VIDEO)
-            // ----------------------------------------------------------------------
+
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -334,9 +324,7 @@ fun NoteDetailScreen(
             }
 
 
-            // ----------------------------------------------------------------------
-            // VISUALIZACIÓN DE MULTIMEDIA
-            // ----------------------------------------------------------------------
+
 
             Spacer(Modifier.height(10.dp))
             Text("Archivos Multimedia Asociados (${multimediaList.size}):", style = MaterialTheme.typography.titleMedium, color = Color.White)
@@ -426,7 +414,7 @@ fun NoteDetailScreen(
                 ) { Text(stringResource(R.string.editar)) }
 
 
-                // Botón Eliminar
+
                 Button(
                     onClick = {
                         viewModel.deleteNote(currentNote)
@@ -437,7 +425,7 @@ fun NoteDetailScreen(
                     Text(stringResource(R.string.eliminar), color = MaterialTheme.colorScheme.onError)
                 }
 
-                // Botón Regresar
+
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                     Text(stringResource(R.string.regresar))
                 }

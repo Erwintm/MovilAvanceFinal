@@ -26,17 +26,17 @@ import com.example.notas.viewmodel.AddNoteViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// 🚨 IMPORTACIONES NECESARIAS PARA LA CÁMARA
+
 import androidx.core.content.FileProvider
 import java.io.File
 import android.content.Context
 import androidx.compose.foundation.background
 
-// ------------------------------------------------------------------
+
 // FUNCIÓN UTILITARIA PARA CREAR URI TEMPORAL DE LA CÁMARA
-// ------------------------------------------------------------------
+
 private fun createImageFileUri(context: Context): Uri {
-    // Crea un archivo temporal en el directorio cache de la app
+
     val file = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
     // Usa FileProvider para crear una URI que la cámara pueda usar
     // La autoridad debe coincidir con el AndroidManifest (com.example.notas.fileprovider)
@@ -75,30 +75,28 @@ fun AddNoteScreen(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
-    // 1. ESTADO TEMPORAL PARA LA URI DE LA CÁMARA
+
     var cameraUri by remember { mutableStateOf<Uri?>(null) }
 
 
-    // 2. LANZADOR PARA SELECCIONAR IMAGEN DE LA GALERÍA
+
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         viewModel.updateImageUri(uri?.toString())
     }
 
-    // 3. LANZADOR PARA TOMAR FOTO CON LA CÁMARA
+
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            // Si la foto se tomó con éxito, actualizamos el ViewModel con la URI temporal
+
             viewModel.updateImageUri(cameraUri?.toString())
         }
-        // Limpiamos la URI temporal después de la operación (éxito o fallo)
+
         cameraUri = null
     }
 
-    // AddNote.kt - Dentro de AddNoteScreen()
 
-// ...
 
     Scaffold(
         topBar = {
@@ -107,7 +105,7 @@ fun AddNoteScreen(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFF121212))
             )
         },
-        // 🚨 BOTTOM BAR CON DOS FILAS PARA MEJOR LEGIBILIDAD
+
         bottomBar = {
             Column(
                 modifier = Modifier
@@ -115,26 +113,26 @@ fun AddNoteScreen(
                     .background(Color(0xFF121212))
                     .padding(horizontal = 8.dp, vertical = 4.dp) // Pequeño padding general
             ) {
-                // Fila 1: Botones de Utilidad (Cancelar, Galería, Cámara)
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Botón Cancelar (Peso 1f)
+
                     OutlinedButton(
                         onClick = onCancel,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2)),
                         modifier = Modifier.weight(1f).padding(end = 4.dp)
                     ) { Text(stringResource(R.string.cancelar), maxLines = 1) }
 
-                    // Botón Abrir Galería (Peso 1f)
+
                     Button(
                         onClick = { galleryLauncher.launch("image/*") },
                         modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
                     ) { Text("Galería", maxLines = 1) }
 
-                    // Botón Tomar Foto (Peso 1f)
+
                     Button(
                         onClick = {
                             val newUri = createImageFileUri(context)
@@ -236,7 +234,7 @@ fun AddNoteScreen(
 
 
             if (viewModel.seleccionarTipo == "Tasks") {
-                // Muestra Fecha Límite y Hora, que también delegan sus valores y eventos al ViewModel
+
                 OutlinedTextField(
                     value = viewModel.fechaLimite,
                     onValueChange = viewModel::updateFechaLimite,

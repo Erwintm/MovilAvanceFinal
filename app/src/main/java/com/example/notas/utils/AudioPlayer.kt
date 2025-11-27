@@ -10,7 +10,7 @@ class AudioPlayer(private val context: Context) {
 
     // Referencia al reproductor de audio.
     var player: ExoPlayer? = null
-        private set // Hacer el setter privado para que solo esta clase lo cambie
+        private set
 
     init {
         // Inicializa el ExoPlayer cuando se crea la clase
@@ -45,9 +45,7 @@ class AudioPlayer(private val context: Context) {
         player?.clearMediaItems()
     }
 
-    /**
-     * Libera los recursos del reproductor. Importante para evitar fugas de memoria.
-     */
+
     fun release() {
         player?.release()
         player = null
