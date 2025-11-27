@@ -46,6 +46,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import com.example.notas.alarmas.AlarmSchedulerImpl
 import com.example.notas.viewmodel.RecordatorioViewModel
+import android.app.AlarmManager
+
 
 // ----------------------------------------------------------------------------------
 
