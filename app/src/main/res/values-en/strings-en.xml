@@ -25,6 +25,7 @@
     <string name="eliminar">Delete</string>
     <string name="regresar">Go back</string>
     <string name="todas">All</string>
-
+    <string name="nuevo_Recordatorio" >New Reminder</string>
+    <string name="guardar_Recordatorio" >Save Reminder</string>
 
 </resources>
