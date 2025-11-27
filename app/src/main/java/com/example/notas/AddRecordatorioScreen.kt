@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.notas.alarmas.AlarmItem
@@ -45,19 +46,19 @@ fun AddRecordatorioScreen(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Nuevo Recordatorio", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.nuevo_Recordatorio), style = MaterialTheme.typography.titleLarge)
 
         OutlinedTextField(
             value = titulo,
             onValueChange = { titulo = it },
-            label = { Text("Título") },
+            label = { Text(stringResource(R.string.titulo)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = descripcion,
             onValueChange = { descripcion = it },
-            label = { Text("Descripción") },
+            label = { Text(stringResource(R.string.descripcion)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -117,11 +118,11 @@ fun AddRecordatorioScreen(
             },
             enabled = titulo.isNotBlank() && fechaTexto != "Seleccionar fecha"
         ) {
-            Text("Guardar Recordatorio")
+            Text(stringResource(R.string.guardar_Recordatorio))
         }
 
         Button(onClick = { navController.popBackStack() }) {
-            Text("Cancelar")
+            Text(stringResource(R.string.cancelar))
         }
     }
 }

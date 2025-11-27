@@ -24,5 +24,8 @@
     <string name="editar">Editar</string>
     <string name="eliminar">Eliminar</string>
     <string name="regresar">Regresar</string>
-    <string name="todas">All</string>
+    <string name="todas">Todas</string>
+    <string name="nuevo_Recordatorio" translatable="false">Nuevo Recordatorio</string>
+    <string name="guardar_Recordatorio" translatable="false">Guardar Recordatorio</string>
+
 </resources>

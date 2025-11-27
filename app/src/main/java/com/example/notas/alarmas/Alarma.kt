@@ -17,9 +17,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import android.app.NotificationChannel
 
-/* ============================================================
-    DATA CLASS
-   ============================================================ */
+
 data class AlarmItem(
     val noteId: Int,
     val alarmTime: LocalDateTime,
@@ -27,9 +25,7 @@ data class AlarmItem(
     val description: String
 )
 
-/* ============================================================
-    SCHEDULER
-   ============================================================ */
+
 interface AlarmScheduler {
     fun schedule(alarm: AlarmItem)
     fun cancel(alarm: AlarmItem)
@@ -61,7 +57,7 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
             .toInstant()
             .toEpochMilli()
 
-        // Android 12+ requiere permiso
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
                 Log.e("AlarmScheduler", "No se pueden programar alarmas exactas.")
@@ -93,9 +89,7 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
     }
 }
 
-/* ============================================================
-    RECEIVER
-   ============================================================ */
+
 class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
