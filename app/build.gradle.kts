@@ -50,6 +50,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.9.0")
     implementation ("androidx.compose.material3:material3")
     implementation ("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.runtime)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.compose.material3:material3-window-size-class")
     implementation("io.coil-kt:coil-compose:2.6.0")

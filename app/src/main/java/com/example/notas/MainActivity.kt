@@ -6,14 +6,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
-import androidx.compose.runtime.*
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,9 +36,13 @@ import com.example.notas.viewmodel.MainViewModel
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import com.example.notas.alarmas.AlarmSchedulerImpl
@@ -82,10 +86,24 @@ class MainActivity : ComponentActivity() {
         // 🚨 1. Solicitar permisos críticos al inicio
         requestCriticalPermissions()
         createNotificationChannel()
+        requestExactAlarmPermission()
         enableEdgeToEdge()
         setContent {
             val windowSize = calculateWindowSizeClass(this)
             MyApp(windowSize.widthSizeClass)
+        }
+    }
+    private fun requestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                try {
+                    val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("AlarmScheduler", "No se pudo solicitar permiso de exact alarm: ${e.message}")
+                }
+            }
         }
     }
 

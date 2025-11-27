@@ -15,6 +15,7 @@ import com.example.notas.R
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import android.app.NotificationChannel
 
 /* ============================================================
     DATA CLASS
