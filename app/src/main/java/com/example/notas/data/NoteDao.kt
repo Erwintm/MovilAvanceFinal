@@ -5,8 +5,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NoteDao {
+    /**
+     * CORRECCIÓN CLAVE: Ahora devuelve el ID (Long) de la nota recién insertada.
+     * El ViewModel usa este ID para enlazar los archivos Multimedia.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(note: Note)
+    suspend fun insert(note: Note): Long
 
     @Update
     suspend fun updateNote(note: Note)

@@ -42,7 +42,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import java.io.File
 import androidx.compose.runtime.DisposableEffect
-
+import androidx.compose.foundation.border
 
 
 @Composable
@@ -131,7 +131,7 @@ fun NoteDetailScreen(
     noteId: Int,
     title: String,
     description: String,
-    imageUri: String? = null,
+    // La firma coincide con MainActivity: 7 argumentos de datos (Int, String, String, Int, String?, String?, String?)
     idTipo: Int = 1,
     fechaLimite: String? = null,
     hora: String? = null,
@@ -150,7 +150,9 @@ fun NoteDetailScreen(
 
     val audioPlayer = remember { AudioPlayer(activityContext) }
 
-    val currentNote by viewModel.note.collectAsState()
+    // Obtenemos la nota completa (incluida la imageUri)
+    // Se mantiene la anotación explícita para forzar al compilador a reconocer el tipo.
+    val currentNote: Note by viewModel.note.collectAsState()
     val multimediaList by viewModel.multimediaList.collectAsState()
 
     // ----------------------------------------------------------------------
@@ -353,6 +355,7 @@ fun NoteDetailScreen(
                                 )
                             }
 
+                            // Muestra el botón de eliminar para todos los tipos
                             Button(
                                 onClick = {
                                     viewModel.deleteMultimedia(multimedia, applicationContextForRepo.filesDir)
@@ -373,15 +376,40 @@ fun NoteDetailScreen(
                             val videoUri = Uri.fromFile(videoFile)
                             VideoPlayer(uri = videoUri)
                         }
+
+                        // === NUEVA LÓGICA: Muestra la IMAGEN Multimedia ===
+                        if (multimedia.tipo == "IMAGEN") {
+                            // Construye el objeto File a partir del nombre guardado.
+                            val imageFile = File(applicationContextForRepo.filesDir, multimedia.uriArchivo)
+
+                            AsyncImage(
+                                model = imageFile, // Usamos el objeto File local
+                                contentDescription = "Imagen Adjunta",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(180.dp)
+                                    .padding(vertical = 4.dp)
+                                    .border(1.dp, Color.Gray, MaterialTheme.shapes.small)
+                            )
+                        }
+                        // ===================================================
                     }
                 }
             }
 
-            // Contenido Antiguo (Imagen simple)
+
+
+            // Contenido Antiguo (Imagen simple guardada en el campo 'imageUri' de la Nota)
             if (!currentNote.imageUri.isNullOrBlank()) {
+                // 1. Construye el objeto File a partir del nombre guardado.
+                val imageFile = File(applicationContextForRepo.filesDir, currentNote.imageUri!!)
+
+
+
+                // 3. Muestra el componente de imagen (AsyncImage)
                 AsyncImage(
-                    model = currentNote.imageUri,
-                    contentDescription = "Imagen Antigua",
+                    model = imageFile, // Usamos directamente el objeto File, que Coil puede resolver
+                    contentDescription = "Imagen Adjunta (Legacy)",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
@@ -402,13 +430,13 @@ fun NoteDetailScreen(
                     onClick = {
                         val titleEncoded = Uri.encode(currentNote.title)
                         val descEncoded = Uri.encode(currentNote.description)
-                        val imgEncoded = currentNote.imageUri?.let { Uri.encode(it) } ?: Uri.encode("")
                         val fechaEncoded = Uri.encode(currentNote.fechaLimite ?: "")
                         val horaEncoded = Uri.encode(currentNote.hora ?: "")
                         val estadoEncoded = Uri.encode(currentNote.estado ?: "")
 
                         navController.navigate(
-                            "editNote/${currentNote.id}/$titleEncoded/$descEncoded/$imgEncoded/${currentNote.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded"
+                            // La ruta espera 7 argumentos (ID, Title, Desc, IDTipo, Fecha, Hora, Estado)
+                            "editNote/${currentNote.id}/$titleEncoded/$descEncoded/${currentNote.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded"
                         )
                     }
                 ) { Text(stringResource(R.string.editar)) }

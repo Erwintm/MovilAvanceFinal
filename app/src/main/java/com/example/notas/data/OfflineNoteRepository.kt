@@ -11,7 +11,12 @@ class OfflineNoteRepository(
 
 
   override fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
-  override suspend fun insert(note: Note) = noteDao.insert(note)
+
+  /**
+   * CORRECCIÓN CLAVE: Retorna el ID (Long) de la nota insertada.
+   */
+  override suspend fun insert(note: Note): Long = noteDao.insert(note)
+
   override suspend fun update(note: Note) = noteDao.updateNote(note)
   override suspend fun delete(note: Note) = noteDao.deleteNote(note)
 
