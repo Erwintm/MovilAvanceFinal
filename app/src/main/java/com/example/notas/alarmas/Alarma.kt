@@ -46,7 +46,7 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alarm.noteId, // UNIQUE por nota
+            alarm.noteId,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
