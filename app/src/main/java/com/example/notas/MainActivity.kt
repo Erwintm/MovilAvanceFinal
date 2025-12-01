@@ -393,23 +393,62 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                     estadoInit = estado
                                 )
                             }
+                            //  LISTA DE RECORDATORIOS
+                            composable(
+                                route = "recordatorios/{noteId}",
+                                arguments = listOf(navArgument("noteId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+
+                                val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
+
+                                val app = LocalContext.current.applicationContext as TodoApplication
+                                val recordatorioViewModel: RecordatorioViewModel =
+                                    viewModel(factory = RecordatorioViewModelFactory(app.recordatorioRepository))
+
+                                RecordatoriosListScreen(
+                                    navController = navController,
+                                    noteId = noteId,
+                                    recordatorioViewModel = recordatorioViewModel
+                                )
+                            }
+
+                            // AGREGAR RECORDATORIO
                             composable(
                                 route = "addRecordatorio/{noteId}",
                                 arguments = listOf(navArgument("noteId") { type = NavType.IntType })
                             ) { backStackEntry ->
 
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
-                                val context = LocalContext.current.applicationContext as TodoApplication
 
+                                val app = LocalContext.current.applicationContext as TodoApplication
                                 val recordatorioViewModel: RecordatorioViewModel =
-                                    viewModel(factory = RecordatorioViewModelFactory(context.recordatorioRepository))
+                                    viewModel(factory = RecordatorioViewModelFactory(app.recordatorioRepository))
 
                                 AddRecordatorioScreen(
                                     navController = navController,
                                     noteId = noteId,
                                     recordatorioViewModel = recordatorioViewModel,
                                     alarmScheduler = AlarmSchedulerImpl(LocalContext.current)
+                                )
+                            }
 
+                            // EDITAR RECORDATORIO
+                            composable(
+                                route = "editRecordatorio/{recordatorioId}",
+                                arguments = listOf(navArgument("recordatorioId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+
+                                val recordatorioId = backStackEntry.arguments?.getInt("recordatorioId") ?: 0
+
+                                val app = LocalContext.current.applicationContext as TodoApplication
+                                val recordatorioViewModel: RecordatorioViewModel =
+                                    viewModel(factory = RecordatorioViewModelFactory(app.recordatorioRepository))
+
+                                EditRecordatorioScreen(
+                                    navController = navController,
+                                    recordatorioId = recordatorioId,
+                                    recordatorioViewModel = recordatorioViewModel,
+                                    alarmScheduler = AlarmSchedulerImpl(LocalContext.current)
                                 )
                             }
 

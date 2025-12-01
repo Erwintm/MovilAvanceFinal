@@ -27,5 +27,8 @@
     <string name="todas">All</string>
     <string name="nuevo_Recordatorio" >New Reminder</string>
     <string name="guardar_Recordatorio" >Save Reminder</string>
+    <string name="ver_recordatorios">View reminders</string>
+    <string name="editar_recordatorio">Edit reminder</string>
+    <string name="seleccionar_fecha">Select date</string>
 
 </resources>

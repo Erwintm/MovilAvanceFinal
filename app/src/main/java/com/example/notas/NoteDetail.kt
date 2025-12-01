@@ -261,7 +261,7 @@ fun NoteDetailScreen(
                         color = Color.White
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF121212)),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor =  Color(0xFF121212)),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -311,7 +311,7 @@ fun NoteDetailScreen(
                 Button(
                     onClick = startStopRecordingAudioFlow,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isRecordingAudio) Color.Red else Color.Green
+                        containerColor = if (isRecordingAudio) Color.Red else Color(0xFF455A64)
                     )
                 ) {
                     Text(if (isRecordingAudio) "Detener Grabación" else "Grabar Audio")
@@ -319,7 +319,7 @@ fun NoteDetailScreen(
 
                 Button(
                     onClick = startRecordingVideoFlow,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
+                    colors = ButtonDefaults.buttonColors()
                 ) {
                     Text("Grabar Video")
                 }
@@ -448,7 +448,7 @@ fun NoteDetailScreen(
                         viewModel.deleteNote(currentNote)
                         navController.popBackStack("main", inclusive = false)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
+                    colors = ButtonDefaults.buttonColors()
                 ) {
                     Text(stringResource(R.string.eliminar), color = MaterialTheme.colorScheme.onError)
                 }

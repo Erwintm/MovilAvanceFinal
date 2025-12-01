@@ -31,6 +31,7 @@ import java.time.ZoneId
 import java.util.Calendar
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -74,20 +75,20 @@ fun EditRecordatorioScreen(
         modifier = Modifier.fillMaxSize().padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Editar recordatorio", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.editar_recordatorio), style = MaterialTheme.typography.titleLarge)
 
         OutlinedTextField(
             value = titulo,
             onValueChange = { titulo = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Título") }
+            label = { Text(stringResource(R.string.titulo)) }
         )
 
         OutlinedTextField(
             value = descripcion,
             onValueChange = { descripcion = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Descripción") }
+            label = { Text(stringResource(R.string.descripcion)) }
         )
 
         // Selección de fecha/hora
@@ -141,7 +142,7 @@ fun EditRecordatorioScreen(
 
             navController.popBackStack()
         }) {
-            Text("Guardar cambios")
+            Text(stringResource(R.string.guardar_cambios))
         }
     }
 }

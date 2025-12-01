@@ -29,6 +29,8 @@
     <string name="guardar_Recordatorio" >Guardar Recordatorio</string>
     <string name="fecha">Fecha</string>
     <string name="ver_recordatorios">Ver recordatorios</string>
+    <string name="editar_recordatorio">Editar recordatorio</string>
+    <string name="seleccionar_fecha">Seleccionar fecha</string>
 
 
 </resources>

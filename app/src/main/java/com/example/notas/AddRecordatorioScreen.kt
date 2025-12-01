@@ -116,7 +116,7 @@ fun AddRecordatorioScreen(
 
                 navController.popBackStack()
             },
-            enabled = titulo.isNotBlank() && fechaTexto != "Seleccionar fecha"
+            enabled = titulo.isNotBlank() && fechaTexto != stringResource(R.string.seleccionar_fecha)
         ) {
             Text(stringResource(R.string.guardar_Recordatorio))
         }
