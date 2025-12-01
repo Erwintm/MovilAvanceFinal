@@ -160,57 +160,59 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
 
 
                 composable(
-                    route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
+                    // RUTA CORREGIDA: Eliminado {imageUri}
+                    route = "noteDetail/{noteId}/{title}/{description}/{idTipo}/{fecha}/{hora}/{estado}",
                     arguments = listOf(
                         navArgument("noteId") { type = NavType.IntType },
                         navArgument("title") { type = NavType.StringType },
                         navArgument("description") { type = NavType.StringType },
-                        navArgument("imageUri") { type = NavType.StringType },
+                        // ELIMINADO: navArgument("imageUri")
                         navArgument("idTipo") { type = NavType.IntType },
-                        navArgument("fecha") { type = NavType.StringType },
-                        navArgument("hora") { type = NavType.StringType },
-                        navArgument("estado") { type = NavType.StringType }
+                        navArgument("fecha") { type = NavType.StringType; nullable = true },
+                        navArgument("hora") { type = NavType.StringType; nullable = true },
+                        navArgument("estado") { type = NavType.StringType; nullable = true }
                     )
                 ) { backStackEntry ->
                     val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                     val title = backStackEntry.arguments?.getString("title") ?: ""
                     val description = backStackEntry.arguments?.getString("description") ?: ""
-                    val imageUri = backStackEntry.arguments?.getString("imageUri")
+                    // ELIMINADO: val imageUri = backStackEntry.arguments?.getString("imageUri")
                     val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                     val fecha = backStackEntry.arguments?.getString("fecha")
                     val hora = backStackEntry.arguments?.getString("hora")
                     val estado = backStackEntry.arguments?.getString("estado")
 
+                    // LLAMADA CORREGIDA: Eliminado imageUri
                     NoteDetailScreen(
                         navController,
                         noteId,
                         title,
                         description,
-                        imageUri,
-                        idTipo,
-                        fecha,
-                        hora,
-                        estado
+                        idTipo = idTipo,
+                        fechaLimite = fecha,
+                        hora = hora,
+                        estado = estado
                     )
                 }
 
                 composable(
-                    route = "editNote/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
+                    // RUTA CORREGIDA: Eliminado {imageUri}
+                    route = "editNote/{noteId}/{title}/{description}/{idTipo}/{fecha}/{hora}/{estado}",
                     arguments = listOf(
                         navArgument("noteId") { type = NavType.IntType },
                         navArgument("title") { type = NavType.StringType },
                         navArgument("description") { type = NavType.StringType },
-                        navArgument("imageUri") { type = NavType.StringType },
+                        // ELIMINADO: navArgument("imageUri")
                         navArgument("idTipo") { type = NavType.IntType },
-                        navArgument("fecha") { type = NavType.StringType },
-                        navArgument("hora") { type = NavType.StringType },
-                        navArgument("estado") { type = NavType.StringType }
+                        navArgument("fecha") { type = NavType.StringType; nullable = true },
+                        navArgument("hora") { type = NavType.StringType; nullable = true },
+                        navArgument("estado") { type = NavType.StringType; nullable = true }
                     )
                 ) { backStackEntry ->
                     val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                     val title = backStackEntry.arguments?.getString("title") ?: ""
                     val description = backStackEntry.arguments?.getString("description") ?: ""
-                    val imageUri = backStackEntry.arguments?.getString("imageUri")
+                    // ELIMINADO: val imageUri = backStackEntry.arguments?.getString("imageUri")
                     val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                     val fecha =
                         backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
@@ -219,16 +221,16 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                     val estado =
                         backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
 
+                    // LLAMADA CORREGIDA: Eliminado imageUri
                     EditNoteScreen(
                         navController,
                         noteId,
                         title,
                         description,
-                        imageUri,
-                        idTipo,
-                        fecha,
-                        hora,
-                        estado
+                        idTipo = idTipo,
+                        fechaLimiteInit = fecha,
+                        horaInit = hora,
+                        estadoInit = estado
                     )
                 }
 
@@ -313,24 +315,25 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                             // 2. MainScreen recibe el ViewModel
                             composable("main") { MainScreen(navController, mainViewModel) }
                             composable("add") { AddNote(navController) }
-                            // ... (Rutas noteDetail y editNote se mantienen igual)
+
                             composable(
-                                route = "noteDetail/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
+                                // RUTA CORREGIDA: Eliminado {imageUri}
+                                route = "noteDetail/{noteId}/{title}/{description}/{idTipo}/{fecha}/{hora}/{estado}",
                                 arguments = listOf(
                                     navArgument("noteId") { type = NavType.IntType },
                                     navArgument("title") { type = NavType.StringType },
                                     navArgument("description") { type = NavType.StringType },
-                                    navArgument("imageUri") { type = NavType.StringType },
+                                    // ELIMINADO: navArgument("imageUri")
                                     navArgument("idTipo") { type = NavType.IntType },
-                                    navArgument("fecha") { type = NavType.StringType },
-                                    navArgument("hora") { type = NavType.StringType },
-                                    navArgument("estado") { type = NavType.StringType }
+                                    navArgument("fecha") { type = NavType.StringType; nullable = true },
+                                    navArgument("hora") { type = NavType.StringType; nullable = true },
+                                    navArgument("estado") { type = NavType.StringType; nullable = true }
                                 )
                             ) { backStackEntry ->
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                                 val title = backStackEntry.arguments?.getString("title") ?: ""
                                 val description = backStackEntry.arguments?.getString("description") ?: ""
-                                val imageUri = backStackEntry.arguments?.getString("imageUri")
+                                // ELIMINADO: val imageUri = backStackEntry.arguments?.getString("imageUri")
                                 val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                                 val fecha =
                                     backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
@@ -339,36 +342,37 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 val estado =
                                     backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
 
+                                // LLAMADA CORREGIDA: Eliminado imageUri
                                 NoteDetailScreen(
                                     navController,
                                     noteId,
                                     title,
                                     description,
-                                    imageUri,
-                                    idTipo,
-                                    fecha,
-                                    hora,
-                                    estado
+                                    idTipo = idTipo,
+                                    fechaLimite = fecha,
+                                    hora = hora,
+                                    estado = estado
                                 )
                             }
 
                             composable(
-                                route = "editNote/{noteId}/{title}/{description}/{imageUri}/{idTipo}/{fecha}/{hora}/{estado}",
+                                // RUTA CORREGIDA: Eliminado {imageUri}
+                                route = "editNote/{noteId}/{title}/{description}/{idTipo}/{fecha}/{hora}/{estado}",
                                 arguments = listOf(
                                     navArgument("noteId") { type = NavType.IntType },
                                     navArgument("title") { type = NavType.StringType },
                                     navArgument("description") { type = NavType.StringType },
-                                    navArgument("imageUri") { type = NavType.StringType },
+                                    // ELIMINADO: navArgument("imageUri")
                                     navArgument("idTipo") { type = NavType.IntType },
-                                    navArgument("fecha") { type = NavType.StringType },
-                                    navArgument("hora") { type = NavType.StringType },
-                                    navArgument("estado") { type = NavType.StringType }
+                                    navArgument("fecha") { type = NavType.StringType; nullable = true },
+                                    navArgument("hora") { type = NavType.StringType; nullable = true },
+                                    navArgument("estado") { type = NavType.StringType; nullable = true }
                                 )
                             ) { backStackEntry ->
                                 val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
                                 val title = backStackEntry.arguments?.getString("title") ?: ""
                                 val description = backStackEntry.arguments?.getString("description") ?: ""
-                                val imageUri = backStackEntry.arguments?.getString("imageUri")
+                                // ELIMINADO: val imageUri = backStackEntry.arguments?.getString("imageUri")
                                 val idTipo = backStackEntry.arguments?.getInt("idTipo") ?: 1
                                 val fecha =
                                     backStackEntry.arguments?.getString("fecha")?.takeIf { it.isNotEmpty() }
@@ -377,16 +381,16 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                                 val estado =
                                     backStackEntry.arguments?.getString("estado")?.takeIf { it.isNotEmpty() }
 
+                                // LLAMADA CORREGIDA: Eliminado imageUri
                                 EditNoteScreen(
                                     navController,
                                     noteId,
                                     title,
                                     description,
-                                    imageUri,
-                                    idTipo,
-                                    fecha,
-                                    hora,
-                                    estado
+                                    idTipo = idTipo,
+                                    fechaLimiteInit = fecha,
+                                    horaInit = hora,
+                                    estadoInit = estado
                                 )
                             }
                             composable(
@@ -497,14 +501,15 @@ fun MainScreen(
                 NoteItemTitle(title = note.title) {
                     val titleEncoded = Uri.encode(note.title)
                     val descEncoded = Uri.encode(note.description)
-                    val imgEncoded = note.imageUri?.let { Uri.encode(it) } ?: ""
+                    // ELIMINADO: val imgEncoded = Uri.encode(note.imageUri ?: "")
 
-                    // 🚀 CORRECCIÓN APLICADA: Codificar SIEMPRE los campos opcionales.
+                    // Codificar SIEMPRE los campos opcionales.
                     val fechaEncoded = Uri.encode(note.fechaLimite ?: "")
                     val horaEncoded = Uri.encode(note.hora ?: "")
                     val estadoEncoded = Uri.encode(note.estado ?: "")
 
-                    navController.navigate("noteDetail/${note.id}/$titleEncoded/$descEncoded/$imgEncoded/${note.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded")
+                    // RUTA CORREGIDA: Eliminado $imgEncoded
+                    navController.navigate("noteDetail/${note.id}/$titleEncoded/$descEncoded/${note.idTipo}/$fechaEncoded/$horaEncoded/$estadoEncoded")
                 }
             }
         }

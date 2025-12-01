@@ -7,22 +7,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notas.data.Note
 import com.example.notas.data.NoteRepository
+import com.example.notas.data.Multimedia
 import kotlinx.coroutines.launch
 
 
+/**
+ * ViewModel para la pantalla de añadir/editar notas.
+ * Se encarga de contener el estado de los campos de entrada y de guardar la nota en la base de datos.
+ * @param repository El repositorio de datos para interactuar con la base de datos (Room).
+ */
 class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
-//---Variables de estado xd
+//---Variables de estado (State Variables)
+
     var title by mutableStateOf("")
         private set
-//Su propósito principal es almacenar el valor actual del título de tu nota o tarea dentro del ViewModel,
-// permitiendo que la interfaz de usuario (UI) lo lea y que solo el ViewModel lo modifique.
-
-    //Compose actualiza automáticamente
 
     var description by mutableStateOf("")
-        private set
-
-    var imageUri by mutableStateOf<String?>(null)
         private set
 
     var seleccionarTipo by mutableStateOf("Notes")
@@ -33,15 +33,15 @@ class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
 
     var hora by mutableStateOf("")
         private set
+
     private val estado by mutableStateOf("Pendiente")
 //---------------------------------------------
+
     val isEntryValid: Boolean
         get() = title.isNotBlank() && description.isNotBlank()
 
-    //Estos métodos son llamados por la AddNoteScreen cuando el usuario interactúa con los campos.
+    // --- Métodos de Actualización (Llamados por la UI) ---
 
-
-    // Simplemente actualiza el estado observable 'title'
     fun updateTitle(newTitle: String) {
         title = newTitle
     }
@@ -67,21 +67,23 @@ class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
         hora = newTime
     }
 
-    fun updateImageUri(uri: String?) {
-        imageUri = uri
-    }
 
-    fun saveNote() {
+    /**
+     * Crea un objeto Note, lo guarda en la base de datos y luego inserta las entradas
+     * de Multimedia (imágenes, audios, etc.) asociadas a esa nota.
+     * * @param tempImageUris Lista de URIs de imágenes adjuntas (recibida desde la UI).
+     */
+    fun saveNoteWithMultimedia(tempImageUris: List<String>) {
         if (isEntryValid) {
+
             val tipo = if (seleccionarTipo == "Notes") 1 else 2
 
+            // 1. Construye el objeto Note.
             val noteToSave = Note(
                 id = 0,
                 title = title.ifBlank { "(sin título)" },
                 description = description,
-                imageUri = imageUri,
                 idTipo = tipo,
-
 
                 fechaLimite = if (tipo == 2) fechaLimite.ifBlank { null } else null,
                 hora = if (tipo == 2) hora.ifBlank { null } else null,
@@ -89,10 +91,26 @@ class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
             )
 
 
+            // 2. Ejecuta la inserción en un hilo seguro.
             viewModelScope.launch {
-                repository.insert(noteToSave)
-            }
 
+                // Llama a 'insert' y RECIBE el ID (Long) generado.
+                val newNoteId = repository.insert(noteToSave)
+
+
+                // 3. Insertar las entradas de Multimedia
+                tempImageUris.forEach { uri ->
+                    val multimediaEntry = Multimedia(
+                        id = 0,
+                        // CONVERSIÓN CORRECTA: newNoteId (Long) -> toInt() -> notaId (Int)
+                        notaId = newNoteId.toInt(),
+                        uriArchivo = uri,
+                        tipo = "IMAGEN"
+                    )
+                    // Llama al repositorio para guardar la entrada multimedia
+                    repository.insertMultimedia(multimediaEntry)
+                }
+            }
         }
     }
 }

@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val repository: NoteRepository) : ViewModel() {
 
-//
+    //
     private val _allNotesFlow = repository.getAllNotes()
 
     //Almacena el texto ingresado en el OutlinedTextField de la MainScreen.
@@ -23,7 +23,7 @@ class MainViewModel(private val repository: NoteRepository) : ViewModel() {
     //Permite que la UI escuche los cambios en el texto de búsqueda (.collectAsState()).
     val searchText: StateFlow<String> = _searchText
 
-//Almacena el ID del filtro seleccionado (0=Todas, 1=Notas, 2=Tareas) desde los RadioButton.
+    //Almacena el ID del filtro seleccionado (0=Todas, 1=Notas, 2=Tareas) desde los RadioButton.
     private val _filterType = MutableStateFlow(0)
 
     //Permite que la UI escuche qué filtro está activo.
@@ -70,7 +70,7 @@ class MainViewModel(private val repository: NoteRepository) : ViewModel() {
     fun updateSearchText(text: String) {
         _searchText.value = text
     }
-//Llamado por los RadioButton. Actualiza _filterType, lo que también dispara la función combine.
+    //Llamado por los RadioButton. Actualiza _filterType, lo que también dispara la función combine.
     fun updateFilterType(type: Int) {
         _filterType.value = type
     }
