@@ -294,11 +294,11 @@ fun NoteDetailScreen(
             // Botón para Recordatorio
             Button(
                 onClick = {
-                    navController.navigate("addRecordatorio/${currentNote.id}")
+                    navController.navigate("recordatorios/$noteId")
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2))
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
             ) {
-                Text("Agregar recordatorio")
+                Text(stringResource(R.string.ver_recordatorios))
             }
 
 
@@ -429,6 +429,8 @@ fun NoteDetailScreen(
                 Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
                     Text(stringResource(R.string.regresar))
                 }
+
+
             }
             Spacer(Modifier.height(20.dp))
         }

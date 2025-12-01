@@ -3,6 +3,9 @@ package com.example.notas.data
 import kotlinx.coroutines.flow.Flow
 
 class RecordatorioRepository(private val recordatorioDao: RecordatorioDao) {
+    fun getRecordatorioById(id: Int): Flow<Recordatorio?> =
+        recordatorioDao.getById(id)
+
     fun getAllRecordatorios(): Flow<List<Recordatorio>> =
         recordatorioDao.getAll()
 
@@ -14,4 +17,7 @@ class RecordatorioRepository(private val recordatorioDao: RecordatorioDao) {
 
     suspend fun delete(recordatorio: Recordatorio) =
         recordatorioDao.delete(recordatorio)
+    suspend fun update(recordatorio: Recordatorio) =
+        recordatorioDao.update(recordatorio)
+
 }

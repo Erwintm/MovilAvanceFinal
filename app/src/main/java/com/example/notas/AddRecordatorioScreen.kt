@@ -32,7 +32,7 @@ fun AddRecordatorioScreen(
     alarmScheduler: AlarmScheduler
 ) {
     val context = LocalContext.current
-    val alarmScheduler = remember { AlarmSchedulerImpl(context) }
+
 
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }

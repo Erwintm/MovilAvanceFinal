@@ -18,4 +18,11 @@ class RecordatorioViewModel( private val repository: RecordatorioRepository): Vi
     fun delete(recordatorio: Recordatorio) = viewModelScope.launch {
         repository.delete(recordatorio)
     }
+    fun update(recordatorio: Recordatorio) = viewModelScope.launch {
+        repository.update(recordatorio)
+    }
+    fun getRecordatorioById(id: Int): Flow<Recordatorio?> {
+        return repository.getRecordatorioById(id)
+    }
+
 }

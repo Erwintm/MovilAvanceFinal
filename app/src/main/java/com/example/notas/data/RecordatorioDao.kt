@@ -21,5 +21,9 @@ interface RecordatorioDao {
 
     @Delete
     suspend fun delete(recordatorio: Recordatorio)
+    @Update
+    suspend fun update(recordatorio: Recordatorio)
+    @Query("SELECT * FROM recordatorios WHERE id = :id LIMIT 1")
+    fun getById(id: Int): Flow<Recordatorio?>
 
 }

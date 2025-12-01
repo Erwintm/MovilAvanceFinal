@@ -25,7 +25,10 @@
     <string name="eliminar">Eliminar</string>
     <string name="regresar">Regresar</string>
     <string name="todas">Todas</string>
-    <string name="nuevo_Recordatorio" translatable="false">Nuevo Recordatorio</string>
-    <string name="guardar_Recordatorio" translatable="false">Guardar Recordatorio</string>
+    <string name="nuevo_Recordatorio" >Nuevo Recordatorio</string>
+    <string name="guardar_Recordatorio" >Guardar Recordatorio</string>
+    <string name="fecha">Fecha</string>
+    <string name="ver_recordatorios">Ver recordatorios</string>
+
 
 </resources>
