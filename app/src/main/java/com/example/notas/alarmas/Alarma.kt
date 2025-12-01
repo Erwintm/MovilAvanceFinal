@@ -100,7 +100,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val channelId = "recordatorios_channel"
 
-        // Android 13+ requiere permiso de notificaciones
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
                 ctx,

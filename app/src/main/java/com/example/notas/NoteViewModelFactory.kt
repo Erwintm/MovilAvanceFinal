@@ -17,7 +17,7 @@ class NoteViewModelFactory(private val repository: NoteRepository) : ViewModelPr
 
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return MainViewModel(repository) as T // Si me pides MainViewModel, yo te lo construyo y le doy el repositorio.
+            return MainViewModel(repository) as T
         }
 
         if (modelClass.isAssignableFrom(AddNoteViewModel::class.java)) {
