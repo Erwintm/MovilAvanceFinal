@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
         requestExactAlarmPermission()
         enableEdgeToEdge()
 
-        // 👇 detectar si se abrió desde la notificación
+        // detectar si se abrió desde la notificación
         val noteId = intent.getIntExtra("NOTE_ID", -1)
         val fromNotification = intent.getBooleanExtra("FROM_NOTIFICATION", false)
 
@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
             TodoappTheme {
                 val windowSize = calculateWindowSizeClass(this)
 
-                // 👇 pasar la info a tu App
+                // pasar la info a tu App
                 MyApp(
                     windowSize = windowSize.widthSizeClass,
                     noteIdToOpen = if (fromNotification) noteId else null

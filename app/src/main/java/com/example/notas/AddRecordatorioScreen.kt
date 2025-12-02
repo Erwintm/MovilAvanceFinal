@@ -21,6 +21,7 @@ import com.example.notas.viewmodel.RecordatorioViewModel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -33,12 +34,12 @@ fun AddRecordatorioScreen(
 ) {
     val context = LocalContext.current
 
-
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var fechaTexto by remember { mutableStateOf("Seleccionar fecha") }
 
-    val calendar = Calendar.getInstance()
+    // Calendar donde se guardará la fecha correcta
+    var fechaRecordatorioMillis by remember { mutableStateOf<Long?>(null) }
 
     Column(
         modifier = Modifier
@@ -62,49 +63,72 @@ fun AddRecordatorioScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Button(onClick = {
-            DatePickerDialog(
-                context,
-                { _, year, month, day ->
-                    TimePickerDialog(
-                        context,
-                        { _, hour, minute ->
-                            calendar.set(year, month, day, hour, minute)
-                            calendar.set(Calendar.SECOND, 0)
-                            calendar.set(Calendar.MILLISECOND, 0)
-                            fechaTexto = "$day/${month + 1}/$year $hour:$minute"
+        Button(
+            onClick = {
+                val calendar = Calendar.getInstance()
 
-                        },
-                        calendar.get(Calendar.HOUR_OF_DAY),
-                        calendar.get(Calendar.MINUTE),
-                        false
-                    ).show()
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
-        }) {
+                DatePickerDialog(
+                    context,
+                    { _, year, month, day ->
+
+                        TimePickerDialog(
+                            context,
+                            { _, hour, minute ->
+
+                                // guardar fecha y hora
+                                calendar.set(Calendar.YEAR, year)
+                                calendar.set(Calendar.MONTH, month)
+                                calendar.set(Calendar.DAY_OF_MONTH, day)
+                                calendar.set(Calendar.HOUR_OF_DAY, hour)
+                                calendar.set(Calendar.MINUTE, minute)
+                                calendar.set(Calendar.SECOND, 0)
+                                calendar.set(Calendar.MILLISECOND, 0)
+
+                                fechaRecordatorioMillis = calendar.timeInMillis
+
+                                val dateTime = LocalDateTime.ofInstant(
+                                    Instant.ofEpochMilli(calendar.timeInMillis),
+                                    ZoneId.systemDefault()
+                                )
+
+                                fechaTexto = dateTime.format(
+                                    DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+                                )
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            false
+                        ).show()
+
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            }
+        ) {
             Text(fechaTexto)
         }
 
+        // GUARDAR
         Button(
             onClick = {
-                val fechaMillis = calendar.timeInMillis
 
-                // Guarda en BD
+                val fechaFinal = fechaRecordatorioMillis!!
+
+                // DB
                 val recordatorio = Recordatorio(
                     titulo = titulo,
                     descripcion = descripcion,
-                    fechaRecordatorio = fechaMillis,
+                    fechaRecordatorio = fechaFinal,
                     notaId = noteId
                 )
 
                 recordatorioViewModel.insert(recordatorio)
 
-                // PROGRAMAR ALARMA
+                // ALARM
                 val dateTime = LocalDateTime.ofInstant(
-                    Instant.ofEpochMilli(fechaMillis),
+                    Instant.ofEpochMilli(fechaFinal),
                     ZoneId.systemDefault()
                 )
 
@@ -119,7 +143,7 @@ fun AddRecordatorioScreen(
 
                 navController.popBackStack()
             },
-            enabled = titulo.isNotBlank() && fechaTexto != stringResource(R.string.seleccionar_fecha)
+            enabled = titulo.isNotBlank() && fechaRecordatorioMillis != null
         ) {
             Text(stringResource(R.string.guardar_Recordatorio))
         }
@@ -129,5 +153,6 @@ fun AddRecordatorioScreen(
         }
     }
 }
+
 
 

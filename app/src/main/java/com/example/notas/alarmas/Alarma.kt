@@ -46,11 +46,11 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
             putExtra("NOTE_ID", alarm.noteId)
         }
 
-        val requestCode = System.currentTimeMillis().toInt()
+
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            requestCode,
+            alarm.noteId,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -111,10 +111,10 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra("FROM_NOTIFICATION", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-
+        val requestCode = System.currentTimeMillis().toInt()
         val clickPendingIntent = PendingIntent.getActivity(
             ctx,
-            noteId,
+            requestCode,
             clickIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

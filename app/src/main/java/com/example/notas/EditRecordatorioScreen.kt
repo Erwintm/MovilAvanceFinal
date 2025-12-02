@@ -130,10 +130,10 @@ fun EditRecordatorioScreen(
             recordatorioViewModel.update(actualizado)
 
             // Reprogramar alarma
-            val dateTime = Instant.ofEpochMilli(actualizado.fechaRecordatorio)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
-
+            val dateTime = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(actualizado.fechaRecordatorio),
+                ZoneId.systemDefault()
+            )
             alarmScheduler.schedule(
                 AlarmItem(
                     noteId = actualizado.notaId,

@@ -1,5 +1,7 @@
 package com.example.notas
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.notas.viewmodel.RecordatorioViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun RecordatoriosListScreen(
     navController: NavController,
@@ -73,12 +76,6 @@ fun RecordatoriosListScreen(
 
         }
     }
-    Row (modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically){
-        Button(onClick = { navController.popBackStack("main", inclusive = false) }) {
-            Text(stringResource(R.string.regresar))
-        }
-    }
+
 
 }
