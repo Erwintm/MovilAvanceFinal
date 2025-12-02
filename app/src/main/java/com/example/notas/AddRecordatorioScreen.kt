@@ -70,7 +70,10 @@ fun AddRecordatorioScreen(
                         context,
                         { _, hour, minute ->
                             calendar.set(year, month, day, hour, minute)
+                            calendar.set(Calendar.SECOND, 0)
+                            calendar.set(Calendar.MILLISECOND, 0)
                             fechaTexto = "$day/${month + 1}/$year $hour:$minute"
+
                         },
                         calendar.get(Calendar.HOUR_OF_DAY),
                         calendar.get(Calendar.MINUTE),

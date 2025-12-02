@@ -44,19 +44,22 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
             putExtra("DESC", alarm.description)
         }
 
+        val requestCode = System.currentTimeMillis().toInt()
+
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alarm.noteId,
+            requestCode,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
 
         // Convertir LocalDateTime a epochMillis
         val epochMillis = alarm.alarmTime
             .atZone(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
-
+        
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -112,15 +115,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val manager =
             ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "Recordatorios",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            manager.createNotificationChannel(channel)
-        }
 
         val builder = NotificationCompat.Builder(ctx, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
