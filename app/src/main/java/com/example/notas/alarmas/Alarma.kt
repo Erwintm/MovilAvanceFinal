@@ -16,6 +16,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import android.app.NotificationChannel
+import com.example.notas.MainActivity
 
 
 data class AlarmItem(
@@ -42,6 +43,7 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("TITLE", alarm.title)
             putExtra("DESC", alarm.description)
+            putExtra("NOTE_ID", alarm.noteId)
         }
 
         val requestCode = System.currentTimeMillis().toInt()
@@ -94,34 +96,40 @@ class AlarmSchedulerImpl(private val context: Context) : AlarmScheduler {
 
 
 class AlarmReceiver : BroadcastReceiver() {
-
     override fun onReceive(context: Context?, intent: Intent?) {
         val ctx = context ?: return
 
         val title = intent?.getStringExtra("TITLE") ?: "Recordatorio"
         val desc = intent?.getStringExtra("DESC") ?: ""
+        val noteId = intent?.getIntExtra("NOTE_ID", -1) ?: -1
 
         val channelId = "recordatorios_channel"
 
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                ctx,
-                android.Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!granted) return
+        //  Intent para abrir la app y navegar a la nota
+        val clickIntent = Intent(ctx, MainActivity::class.java).apply {
+            putExtra("NOTE_ID", noteId)
+            putExtra("FROM_NOTIFICATION", true)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        val manager =
-            ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val clickPendingIntent = PendingIntent.getActivity(
+            ctx,
+            noteId,
+            clickIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
-        val builder = NotificationCompat.Builder(ctx, channelId)
+        val notification = NotificationCompat.Builder(ctx, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(desc)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(clickPendingIntent)   //abrir
+            .build()
 
-        manager.notify(System.currentTimeMillis().toInt(), builder.build())
+        val manager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(noteId, notification)
     }
 }
+

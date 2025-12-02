@@ -81,19 +81,29 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         requestCriticalPermissions()
         createNotificationChannel()
         requestExactAlarmPermission()
         enableEdgeToEdge()
+
+        // 👇 detectar si se abrió desde la notificación
+        val noteId = intent.getIntExtra("NOTE_ID", -1)
+        val fromNotification = intent.getBooleanExtra("FROM_NOTIFICATION", false)
+
         setContent {
             TodoappTheme {
                 val windowSize = calculateWindowSizeClass(this)
-                MyApp(windowSize.widthSizeClass)
+
+                // 👇 pasar la info a tu App
+                MyApp(
+                    windowSize = windowSize.widthSizeClass,
+                    noteIdToOpen = if (fromNotification) noteId else null
+                )
             }
         }
-
     }
+
+
     private fun requestExactAlarmPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(AlarmManager::class.java)
@@ -141,7 +151,7 @@ class MainActivity : ComponentActivity() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MyApp(windowSize: WindowWidthSizeClass) {
+fun MyApp(windowSize: WindowWidthSizeClass,noteIdToOpen: Int?) {
     val navController = rememberNavController()
     val context = LocalContext.current.applicationContext as TodoApplication
 
@@ -152,8 +162,16 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
         // Pantalla chica
         WindowWidthSizeClass.Compact -> {
             NavHost(navController = navController, startDestination = "main") {
+                //Navegar por la notificación
+                composable("main") {
+                    MainScreen(navController, mainViewModel)
 
-
+                    if (noteIdToOpen != null && noteIdToOpen != -1) {
+                        LaunchedEffect(Unit) {
+                            navController.navigate("openNote/$noteIdToOpen")
+                        }
+                    }
+                }
                 composable("main") { MainScreen(navController, mainViewModel) }
 
                 composable("add") { AddNote(navController) }
@@ -312,6 +330,16 @@ fun MyApp(windowSize: WindowWidthSizeClass) {
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         NavHost(navController = navController, startDestination = "main") {
+                            //Navegar por la notificación
+                            composable("main") {
+                                MainScreen(navController, mainViewModel)
+
+                                if (noteIdToOpen != null && noteIdToOpen != -1) {
+                                    LaunchedEffect(Unit) {
+                                        navController.navigate("openNote/$noteIdToOpen")
+                                    }
+                                }
+                            }
                             // 2. MainScreen recibe el ViewModel
                             composable("main") { MainScreen(navController, mainViewModel) }
                             composable("add") { AddNote(navController) }
@@ -573,10 +601,3 @@ fun NoteSummary(note: Note) {
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun ReplyAppCompactPreview() {
-    TodoappTheme {
-        Surface { MyApp(WindowWidthSizeClass.Compact) }
-    }
-}
