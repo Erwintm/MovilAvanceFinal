@@ -37,6 +37,13 @@ import java.util.UUID
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+// Nuevas importaciones para manejo de permisos y activity
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import android.app.Activity
+import android.content.Intent
+import android.provider.Settings
 
 
 private fun Uri.copyToInternalStorage(context: Context): String? {
@@ -106,6 +113,8 @@ fun AddNoteScreen(
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
+    // Cásting para obtener la Activity, necesario para verificar permisos avanzados
+    val activity = context as Activity
     val applicationContext = context.applicationContext // Contexto para operaciones de archivo
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -115,33 +124,21 @@ fun AddNoteScreen(
     var cameraTempUri by remember { mutableStateOf<Uri?>(null) } // URI temporal de la cámara (cacheDir)
 
 
-
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { externalUri ->
-
-            val internalFileName = externalUri.copyToInternalStorage(applicationContext)
-
-
-            internalFileName?.let { internalFileNames.add(it) }
-        }
-    }
-
-
-    // Launcher para Cámara
+    // ------------------------------------------------------------------------------------
+    // 1. DEFINICIÓN DEL LAUNCHER DE CÁMARA (Lanzará la app de cámara)
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         cameraTempUri?.let { tempUri ->
             if (success) {
-
+                // Copia la imagen al almacenamiento interno y obtiene el nombre del archivo
                 val internalFileName = tempUri.copyToInternalStorage(applicationContext)
 
-
-                internalFileNames.add(internalFileName!!)
-
+                // Si la copia fue exitosa, agrega el nombre de archivo a la lista
+                internalFileName?.let { internalFileNames.add(it) }
 
                 try {
-                    // Nota: Usamos context.cacheDir porque la URI temporal se creó allí
+                    // Borra el archivo temporal de la caché
                     val tempFile = File(context.cacheDir, tempUri.lastPathSegment)
                     if (tempFile.exists()) tempFile.delete()
                 } catch (e: Exception) {
@@ -150,6 +147,67 @@ fun AddNoteScreen(
             }
             // Limpia la URI temporal de la cámara
             cameraTempUri = null
+        }
+    }
+
+
+    // ------------------------------------------------------------------------------------
+    // 2. FUNCIÓN DE FLUJO DE CÁMARA (Lanzará el launcher de permisos o la cámara)
+
+    // Se necesita un lateinit var porque el flujo de permisos (paso 3) lo necesita.
+    lateinit var requestCameraPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
+
+    val startCameraFlow: () -> Unit = {
+        when {
+            // Permiso ya concedido
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // 1. Permiso OK: Crear URI temporal y lanzar la cámara
+                val newUri = createImageFileUri(context)
+                cameraTempUri = newUri
+                cameraLauncher.launch(newUri)
+            }
+            else -> {
+                // 2. Manejo de Permiso Denegado/No Solicitado
+                if (activity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                    // Denegación temporal: Solicitar permiso estándar
+                    requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                } else {
+                    // Denegación permanente: Navegar a la Configuración de la aplicación
+                    val intent = Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", activity.packageName, null)
+                    )
+                    activity.startActivity(intent)
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------------------
+    // 3. DEFINICIÓN DEL LAUNCHER DE PERMISOS (Actúa como puente)
+    requestCameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Si el permiso es concedido, re-ejecutamos el flujo para lanzar la cámara.
+            startCameraFlow()
+        }
+        // Si no se concede, no hacemos nada (el usuario no podrá tomar la foto)
+    }
+
+
+    // ------------------------------------------------------------------------------------
+    // 4. LAUNCHER DE GALERÍA (Se mantiene igual)
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { externalUri ->
+
+            val internalFileName = externalUri.copyToInternalStorage(applicationContext)
+
+
+            internalFileName?.let { internalFileNames.add(it) }
         }
     }
 
@@ -168,7 +226,6 @@ fun AddNoteScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF121212))
-                    // *** MODIFICADO: Padding horizontal a 0.dp para máxima anchura. ***
                     .padding(horizontal = 0.dp, vertical = 48.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -192,14 +249,9 @@ fun AddNoteScreen(
                     Text("Galería", maxLines = 1)
                 }
 
-                // 3. Botón Cámara (Mismo tamaño: weight=1f)
+                // Botón Cámara (AHORA LLAMA AL FLUJO DE PERMISOS)
                 Button(
-                    onClick = {
-                        val newUri = createImageFileUri(context)
-                        cameraTempUri = newUri
-                        cameraLauncher.launch(newUri)
-                    },
-
+                    onClick = startCameraFlow, // <-- CAMBIO CLAVE
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Cámara", maxLines = 1)
