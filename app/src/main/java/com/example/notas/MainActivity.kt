@@ -47,7 +47,7 @@ import androidx.core.app.ActivityCompat
 import com.example.notas.alarmas.AlarmSchedulerImpl
 import com.example.notas.viewmodel.RecordatorioViewModel
 import android.app.AlarmManager
-import android.widget.Toast // Importante para mensajes de alerta
+import android.widget.Toast
 
 
 // ----------------------------------------------------------------------------------
@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
         Manifest.permission.RECORD_AUDIO,
         Manifest.permission.CAMERA,
         Manifest.permission.POST_NOTIFICATIONS
+
     )
     private val REQUEST_CODE_PERMISSIONS = 100
 
@@ -82,8 +83,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // **CLAVE:** Llamamos a la solicitud de permisos cada vez que se crea la actividad.
-        // Android mostrará el diálogo solo si los permisos aún no están concedidos.
+
         requestCriticalPermissions()
         createNotificationChannel()
         requestExactAlarmPermission()
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
             TodoappTheme {
                 val windowSize = calculateWindowSizeClass(this)
 
-                // pasar la info a tu App
+
                 MyApp(
                     windowSize = windowSize.widthSizeClass,
                     noteIdToOpen = if (fromNotification) noteId else null
@@ -121,10 +121,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Función que abre la pantalla de Configuración de la aplicación
-     * para que el usuario active los permisos manualmente.
-     */
+
     private fun openAppSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", packageName, null)
@@ -132,14 +129,9 @@ class MainActivity : ComponentActivity() {
         startActivity(intent)
     }
 
-    /**
-     * Función que fuerza la solicitud de los cuadros de diálogo de permisos
-     * cada vez que se llama, sin importar si el usuario ya los había denegado antes.
-     */
+
     private fun requestCriticalPermissions() {
-        // Solicitamos los permisos directamente.
-        // Android gestiona si debe mostrar el diálogo o no
-        // (si ya están concedidos, no se muestran).
+
         ActivityCompat.requestPermissions(
             this,
             PERMISSIONS,
@@ -161,8 +153,8 @@ class MainActivity : ComponentActivity() {
             }
 
             if (permissionDenied) {
-                // Si el usuario denegó *cualquier* permiso en el diálogo, lo redirigimos a Ajustes.
-                // Esto es crucial si deniega y marca "No volver a preguntar".
+
+
                 Toast.makeText(this, "Permiso denegado. Active los permisos en Ajustes.", Toast.LENGTH_LONG).show()
                 openAppSettings()
             }

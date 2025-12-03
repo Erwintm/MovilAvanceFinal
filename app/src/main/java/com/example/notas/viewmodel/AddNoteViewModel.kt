@@ -91,23 +91,23 @@ class AddNoteViewModel(private val repository: NoteRepository) : ViewModel() {
             )
 
 
-            // 2. Ejecuta la inserción en un hilo seguro.
+
             viewModelScope.launch {
 
-                // Llama a 'insert' y RECIBE el ID (Long) generado.
+
                 val newNoteId = repository.insert(noteToSave)
 
 
-                // 3. Insertar las entradas de Multimedia
+
                 tempImageUris.forEach { uri ->
                     val multimediaEntry = Multimedia(
                         id = 0,
-                        // CONVERSIÓN CORRECTA: newNoteId (Long) -> toInt() -> notaId (Int)
+
                         notaId = newNoteId.toInt(),
                         uriArchivo = uri,
                         tipo = "IMAGEN"
                     )
-                    // Llama al repositorio para guardar la entrada multimedia
+
                     repository.insertMultimedia(multimediaEntry)
                 }
             }

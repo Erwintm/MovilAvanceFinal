@@ -38,14 +38,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// FUNCIÓN DE EXTENSIÓN CRÍTICA: Copia la URI externa al almacenamiento interno de la app
+
 private fun Uri.copyToInternalStorage(context: Context): String? {
-    // 1. Crear un nombre de archivo único con timestamp y un identificador aleatorio
+
     val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
     val randomPart = UUID.randomUUID().toString().substring(0, 4)
     val fileName = "IMG_${timeStamp}_${randomPart}.jpg"
 
-    // 2. Definir el archivo de destino en filesDir (almacenamiento interno permanente)
+
     val destinationFile = File(context.filesDir, fileName)
 
     try {
@@ -57,10 +57,10 @@ private fun Uri.copyToInternalStorage(context: Context): String? {
                 inputStream.copyTo(outputStream)
             }
         }
-        // 6. Retorna el nombre del archivo interno (String) si fue exitoso
+
         return fileName
     } catch (e: Exception) {
-        // Manejo de errores de IO o permisos
+
         println("ERROR al copiar la URI al almacenamiento interno: ${e.message}")
         e.printStackTrace()
         return null
@@ -68,14 +68,14 @@ private fun Uri.copyToInternalStorage(context: Context): String? {
 }
 
 
-// FUNCIÓN UTILITARIA PARA CREAR URI TEMPORAL DE LA CÁMARA
+
 private fun createImageFileUri(context: Context): Uri {
     // Crea el archivo DENTRO del directorio de caché (Temporal)
     val file = File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
     // Usa FileProvider para crear una URI que la cámara pueda usar
     return FileProvider.getUriForFile(
         context,
-        "${context.packageName}.fileprovider", // Asegúrate de que esta autoridad coincide con AndroidManifest
+        "${context.packageName}.fileprovider",
         file
     )
 }
@@ -84,7 +84,7 @@ private fun createImageFileUri(context: Context): Uri {
 
 @Composable
 fun AddNote(navController: NavController) {
-    // Usamos 'as TodoApplication' asumiendo que el contexto es de la aplicación que contiene el repositorio
+
     val context = LocalContext.current.applicationContext as TodoApplication
 
     val viewModel: AddNoteViewModel = viewModel(
@@ -110,37 +110,36 @@ fun AddNoteScreen(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Usar una lista mutable para guardar los NOMBRES DE ARCHIVO INTERNOS (String)
     val internalFileNames = remember { mutableStateListOf<String>() }
 
     var cameraTempUri by remember { mutableStateOf<Uri?>(null) } // URI temporal de la cámara (cacheDir)
 
 
-    // Launcher para Galería: Añade el NOMBRE DE ARCHIVO interno a la lista
+
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { externalUri ->
-            // 1. Copia el archivo externo a nuestro almacenamiento interno.
+
             val internalFileName = externalUri.copyToInternalStorage(applicationContext)
 
-            // 2. Si la copia fue exitosa, añade el NOMBRE del archivo a la lista de estados.
+
             internalFileName?.let { internalFileNames.add(it) }
         }
     }
 
 
-    // Launcher para Cámara: Copia el archivo temporal a almacenamiento interno si fue exitoso
+    // Launcher para Cámara
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         cameraTempUri?.let { tempUri ->
             if (success) {
-                // 1. El archivo está en el caché (tempUri). Copiar del caché a filesDir.
+
                 val internalFileName = tempUri.copyToInternalStorage(applicationContext)
 
-                // 2. Si la copia fue exitosa, añade el NOMBRE del archivo a la lista de estados.
+
                 internalFileNames.add(internalFileName!!)
 
-                // 3. Opcional: Eliminar el archivo temporal del caché
+
                 try {
                     // Nota: Usamos context.cacheDir porque la URI temporal se creó allí
                     val tempFile = File(context.cacheDir, tempUri.lastPathSegment)
@@ -174,20 +173,20 @@ fun AddNoteScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 1. Botón Cancelar (Mismo tamaño: weight=1f)
+
                 OutlinedButton(
                     onClick = onCancel,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7E57C2)),
-                    // *** MODIFICADO: Eliminado el padding horizontal interno para máxima anchura. ***
+
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.cancelar), maxLines = 1)
                 }
 
-                // 2. Botón Galería (Mismo tamaño: weight=1f)
+
                 Button(
                     onClick = { galleryLauncher.launch("image/*") },
-                    // *** MODIFICADO: Eliminado el padding horizontal interno para máxima anchura. ***
+
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Galería", maxLines = 1)
@@ -200,13 +199,13 @@ fun AddNoteScreen(
                         cameraTempUri = newUri
                         cameraLauncher.launch(newUri)
                     },
-                    // *** MODIFICADO: Eliminado el padding horizontal interno para máxima anchura. ***
+
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("Cámara", maxLines = 1)
                 }
 
-                // 4. Botón Agregar (Guardar) (Mismo tamaño: weight=1f)
+
                 Button(
                     onClick = {
                         // Pasa la lista de NOMBRES de archivo internos (Strings) al ViewModel
@@ -214,7 +213,7 @@ fun AddNoteScreen(
                         onSaveComplete()
                     },
                     enabled = viewModel.isEntryValid,
-                    // *** MODIFICADO: Eliminado el padding horizontal interno para máxima anchura. ***
+
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(stringResource(R.string.agregar), maxLines = 1)
@@ -224,7 +223,7 @@ fun AddNoteScreen(
         containerColor = Color(0xFF121212)
     ) { innerPadding ->
         Column(
-            // Aplicamos el padding de Scaffold para evitar que el contenido se oculte detrás de TopBar y BottomBar
+
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp) // Mantenemos el padding horizontal para el contenido
@@ -338,7 +337,7 @@ fun AddNoteScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            // Muestra TODAS las imágenes adjuntas (usando los NOMBRES DE ARCHIVO internos)
+            //mosr
             if (internalFileNames.isNotEmpty()) {
                 Text("Archivos Adjuntos:", style = MaterialTheme.typography.labelLarge, color = Color.White, modifier = Modifier.padding(top = 8.dp))
                 Spacer(Modifier.height(4.dp))

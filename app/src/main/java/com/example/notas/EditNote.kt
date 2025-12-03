@@ -45,14 +45,7 @@ fun EditNoteScreen(
 
     val scrollState = rememberScrollState()
 
-    // Lista para almacenar nuevas URIs adjuntadas durante esta sesión de edición
-    // Se eliminó la declaración de tempNewImageUris.
-    // Se eliminó la declaración de cameraUri.
 
-
-    // Lanzadores de Multimedia
-    // Se eliminó la declaración de galleryLauncher.
-    // Se eliminó la declaración de cameraLauncher.
 
     LaunchedEffect(key1 = noteId) {
         // Reconstruye el objeto Note a partir de los parámetros de navegación
@@ -135,24 +128,14 @@ fun EditNoteScreen(
                 )
             }
 
-            // VISUALIZACIÓN DE ARCHIVOS MULTIMEDIA EXISTENTES
-            // Este bloque de código ha sido eliminado.
-
-            // VISUALIZACIÓN DE NUEVOS ARCHIVOS MULTIMEDIA ADJUNTADOS EN ESTA SESIÓN
-            // Este bloque de código ha sido eliminado.
-
-            // BOTONES DE MULTIMEDIA
-            // Este Row de botones de multimedia ha sido eliminado.
 
 
-            // BOTÓN GUARDAR CAMBIOS
             Button(
                 onClick = {
-                    // *** CORRECCIÓN ***: Usar la función existente y pasar una lista vacía.
+
                     viewModel.updateNoteWithMultimedia(emptyList())
 
-                    // La navegación es más sencilla si solo volvemos atrás después de guardar.
-                    // Si necesitamos refrescar NoteDetail, el onSnapshot debería hacerlo automáticamente.
+
                     navController.popBackStack()
                 },
                 enabled = viewModel.isEntryValid,

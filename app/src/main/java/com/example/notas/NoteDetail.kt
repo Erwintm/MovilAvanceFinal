@@ -121,8 +121,7 @@ fun VideoPlayer(uri: Uri) {
 
 
 // ----------------------------------------------------------------------
-// PANTALLA PRINCIPAL: NoteDetailScreen
-// ----------------------------------------------------------------------
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,7 +130,7 @@ fun NoteDetailScreen(
     noteId: Int,
     title: String,
     description: String,
-    // La firma coincide con MainActivity: 7 argumentos de datos (Int, String, String, Int, String?, String?, String?)
+
     idTipo: Int = 1,
     fechaLimite: String? = null,
     hora: String? = null,
@@ -150,14 +149,11 @@ fun NoteDetailScreen(
 
     val audioPlayer = remember { AudioPlayer(activityContext) }
 
-    // Obtenemos la nota completa (incluida la imageUri)
-    // Se mantiene la anotación explícita para forzar al compilador a reconocer el tipo.
+
     val currentNote: Note by viewModel.note.collectAsState()
     val multimediaList by viewModel.multimediaList.collectAsState()
 
-    // ----------------------------------------------------------------------
-    // LÓGICA DE GRABACIÓN DE AUDIO Y VIDEO
-    // ----------------------------------------------------------------------
+
 
     val audioRecorder = remember { AudioRecorder(activityContext) }
     val videoRecorder = remember { VideoRecorder(activityContext) }
@@ -175,7 +171,7 @@ fun NoteDetailScreen(
 
     val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
         if (success) {
-            // 🟢 OBTENEMOS EL ARCHIVO TEMPORAL
+
             val tempFile = videoRecorder.getTempVideoFile()
 
             if (tempFile != null && tempFile.exists()) {
@@ -399,14 +395,14 @@ fun NoteDetailScreen(
 
 
 
-            // Contenido Antiguo (Imagen simple guardada en el campo 'imageUri' de la Nota)
+
             if (!currentNote.imageUri.isNullOrBlank()) {
-                // 1. Construye el objeto File a partir del nombre guardado.
+                
                 val imageFile = File(applicationContextForRepo.filesDir, currentNote.imageUri!!)
 
 
 
-                // 3. Muestra el componente de imagen (AsyncImage)
+
                 AsyncImage(
                     model = imageFile, // Usamos directamente el objeto File, que Coil puede resolver
                     contentDescription = "Imagen Adjunta (Legacy)",
