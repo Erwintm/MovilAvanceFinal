@@ -30,8 +30,6 @@ import com.example.notas.data.Multimedia
 import com.example.notas.utils.AudioPlayer
 import com.example.notas.utils.VideoRecorder
 import androidx.compose.ui.viewinterop.AndroidView
-
-
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,6 +41,9 @@ import androidx.media3.ui.PlayerView
 import java.io.File
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.foundation.border
+import android.app.Activity // IMPORTACIÓN AÑADIDA
+import android.content.Intent // IMPORTACIÓN AÑADIDA
+import android.provider.Settings // IMPORTACIÓN AÑADIDA
 
 
 @Composable
@@ -137,6 +138,8 @@ fun NoteDetailScreen(
     estado: String? = null
 ) {
     val activityContext = LocalContext.current
+    // NECESARIO: Convertir el contexto a Activity para el manejo avanzado de permisos
+    val activity = activityContext as Activity
     val applicationContextForRepo = activityContext.applicationContext as TodoApplication
 
     val viewModel: NoteDetailViewModel = viewModel(
@@ -169,18 +172,23 @@ fun NoteDetailScreen(
     }
 
 
-    val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
-        if (success) {
+    // --- 1. DECLARACIÓN DE LOS LAUNCHERS (DEBE ESTAR ANTES DEL SCAFFOLD) ---
 
+    // Este launcher (CaptureVideo) no tiene dependencias cruzadas con los flujos de permiso
+    val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+        // si el video fue grabado
+        if (success) {
+            // recuperea el arhcivo de la cahe
             val tempFile = videoRecorder.getTempVideoFile()
 
             if (tempFile != null && tempFile.exists()) {
+                // construye una ruta para guardarse temporalmete
                 val permanentFileName = tempFile.name
 
                 val destinationFile = File(applicationContextForRepo.filesDir, permanentFileName)
 
                 try {
-
+                    // mueve el arhcivo
                     tempFile.copyTo(destinationFile, overwrite = true)
                     tempFile.delete()
 
@@ -201,11 +209,18 @@ fun NoteDetailScreen(
         tempVideoUri = null
     }
 
+    // AHORA DECLARAMOS LOS LAUNCHERS DE PERMISOS, que usaremos en las funciones de flujo (paso 3)
+    lateinit var requestAudioPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
+    lateinit var requestCameraPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>
+
+
+    // --- 2. DEFINICIÓN DE FLUJOS (Funciones Lambda) ---
+    // Estas lambdas DEBEN estar definidas antes de los rememberLauncherForActivityResult que las invocan.
 
     val startStopRecordingAudioFlow: () -> Unit = {
         when {
             isRecordingAudio -> {
-
+                // 1. Detener Grabación
                 val fileName = audioRecorder.stop()
                 if (!fileName.isNullOrBlank()) {
                     val newMultimedia = Multimedia(
@@ -221,28 +236,80 @@ fun NoteDetailScreen(
             ContextCompat.checkSelfPermission(
                 activityContext, Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED -> {
+                // 2. Permiso Concedido: Iniciar Grabación
                 val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                 val audioFileName = "AUD_${timeStamp}.mp4"
 
                 audioRecorder.start(audioFileName)
                 isRecordingAudio = true
             }
-            else -> {  }
+            else -> {
+                // 3. Manejo de Permiso Denegado/No Solicitado
+                if (activity.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO)) {
+                    // Denegación temporal: Solicitar permiso estándar
+                    requestAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                } else {
+                    // Denegación permanente: Navegar a la Configuración de la aplicación
+                    val intent = Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", activity.packageName, null)
+                    )
+                    activity.startActivity(intent)
+                }
+            }
         }
     }
 
 
     val startRecordingVideoFlow: () -> Unit = {
         when {
+            // verifica los permisos
             ContextCompat.checkSelfPermission(
                 activityContext, Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED -> {
+                // Se crea un archivo temporarl en la memoria del cache
                 tempVideoUri = videoRecorder.createVideoFileUri()
+
                 tempVideoUri?.let { uri ->
+                    // intent le dice al sistema que abra la camara
                     videoLauncher.launch(uri)
                 }
             }
-            else -> { /* Solicitar permiso */ }
+            else -> {
+                // Manejo de Permiso Denegado/No Solicitado
+                if (activity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                    // Denegación temporal: Solicitar permiso estándar
+                    requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                } else {
+                    // Denegación permanente: Navegar a la Configuración de la aplicación
+                    val intent = Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", activity.packageName, null)
+                    )
+                    activity.startActivity(intent)
+                }
+            }
+        }
+    }
+
+
+    // --- 3. DEFINICIÓN DE LAUNCHERS DE PERMISOS (USANDO LAS FUNCIONES DE FLUJO) ---
+
+    requestAudioPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Si el permiso es concedido, re-ejecutamos el flujo para iniciar la grabación.
+            startStopRecordingAudioFlow()
+        }
+    }
+
+    requestCameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Si el permiso es concedido, re-ejecutamos el flujo para lanzar la cámara.
+            startRecordingVideoFlow()
         }
     }
 
@@ -304,8 +371,9 @@ fun NoteDetailScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
+                // Botón para iniciar/detener la grabación
                 Button(
-                    onClick = startStopRecordingAudioFlow,
+                    onClick = startStopRecordingAudioFlow, // <<-- FUNCIÓN UTILIZADA
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isRecordingAudio) Color.Red else Color(0xFF455A64)
                     )
@@ -313,8 +381,9 @@ fun NoteDetailScreen(
                     Text(if (isRecordingAudio) "Detener Grabación" else "Grabar Audio")
                 }
 
+                // Botón para grabar video
                 Button(
-                    onClick = startRecordingVideoFlow,
+                    onClick = startRecordingVideoFlow, // <<-- FUNCIÓN UTILIZADA
                     colors = ButtonDefaults.buttonColors()
                 ) {
                     Text("Grabar Video")
@@ -397,7 +466,7 @@ fun NoteDetailScreen(
 
 
             if (!currentNote.imageUri.isNullOrBlank()) {
-                
+
                 val imageFile = File(applicationContextForRepo.filesDir, currentNote.imageUri!!)
 
 

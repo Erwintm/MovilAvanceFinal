@@ -51,9 +51,9 @@ private fun Uri.copyToInternalStorage(context: Context): String? {
     try {
         // 3. Abrir InputStream desde la URI (funciona para content:// URIs y file:// URIs)
         context.contentResolver.openInputStream(this)?.use { inputStream ->
-            // 4. Abrir OutputStream para el archivo interno
+
             destinationFile.outputStream().use { outputStream ->
-                // 5. Copiar bytes
+
                 inputStream.copyTo(outputStream)
             }
         }
