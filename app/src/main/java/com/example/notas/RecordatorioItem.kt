@@ -66,7 +66,7 @@ fun RecordatorioItem(
         Text(
             text = fechaTexto,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.Black
+            color = Color.White
         )
 
         Row(
