@@ -17,6 +17,10 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import android.app.NotificationChannel
 import com.example.notas.MainActivity
+import com.example.notas.TodoApplication
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 data class AlarmItem(
@@ -132,4 +136,41 @@ class AlarmReceiver : BroadcastReceiver() {
         manager.notify(noteId, notification)
     }
 }
+class BootReceiver : BroadcastReceiver() {
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onReceive(context: Context, intent: Intent) {
+
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+
+            val app = context.applicationContext as TodoApplication
+            val repo = app.recordatorioRepository
+            val alarmScheduler = AlarmSchedulerImpl(context)
+
+            CoroutineScope(Dispatchers.IO).launch {
+
+                // ⚠️ YA SIN FLOW → lista directa
+                val recordatorios = repo.getAllRecordatoriosDirect()
+
+                recordatorios.forEach { rec ->
+
+                    val dateTime = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(rec.fechaRecordatorio),
+                        ZoneId.systemDefault()
+                    )
+
+                    alarmScheduler.schedule(
+                        AlarmItem(
+                            noteId = rec.notaId,
+                            alarmTime = dateTime,
+                            title = rec.titulo,
+                            description = rec.descripcion
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+
 

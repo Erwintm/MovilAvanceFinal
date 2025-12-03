@@ -6,8 +6,8 @@ class RecordatorioRepository(private val recordatorioDao: RecordatorioDao) {
     fun getRecordatorioById(id: Int): Flow<Recordatorio?> =
         recordatorioDao.getById(id)
 
-    fun getAllRecordatorios(): Flow<List<Recordatorio>> =
-        recordatorioDao.getAll()
+    fun getAllRecordatorios(id: Int): Flow<List<Recordatorio>> =
+        recordatorioDao.getAll(id)
 
     fun getRecordatoriosByNota(notaId: Int): Flow<List<Recordatorio>> =
         recordatorioDao.getByNota(notaId)
@@ -19,5 +19,6 @@ class RecordatorioRepository(private val recordatorioDao: RecordatorioDao) {
         recordatorioDao.delete(recordatorio)
     suspend fun update(recordatorio: Recordatorio) =
         recordatorioDao.update(recordatorio)
-
+    suspend fun getAllRecordatoriosDirect(): List<Recordatorio> =
+        recordatorioDao.getAllDirect()
 }
