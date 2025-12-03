@@ -146,13 +146,12 @@ fun AddRecordatorioScreen(
                 Text(fechaTexto)
             }
 
-            // GUARDAR
+            // guardar
             Button(
                 onClick = {
 
                     val fechaFinal = fechaRecordatorioMillis!!
 
-                    // DB
                     val recordatorio = Recordatorio(
                         titulo = titulo,
                         descripcion = descripcion,
@@ -162,7 +161,7 @@ fun AddRecordatorioScreen(
 
                     recordatorioViewModel.insert(recordatorio)
 
-                    // ALARM
+                    // alarma
                     val dateTime = LocalDateTime.ofInstant(
                         Instant.ofEpochMilli(fechaFinal),
                         ZoneId.systemDefault()

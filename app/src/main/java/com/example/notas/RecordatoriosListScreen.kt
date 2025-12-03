@@ -61,7 +61,7 @@ fun RecordatoriosListScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Button(
-                    onClick = { navController.popBackStack("main", inclusive = false) }
+                    onClick = { navController.popBackStack() }
                 ) {
                     Text(stringResource(R.string.regresar))
                 }

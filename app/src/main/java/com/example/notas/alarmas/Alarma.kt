@@ -115,10 +115,10 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra("FROM_NOTIFICATION", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val requestCode = System.currentTimeMillis().toInt()
+
         val clickPendingIntent = PendingIntent.getActivity(
             ctx,
-            requestCode,
+            noteId,
             clickIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
