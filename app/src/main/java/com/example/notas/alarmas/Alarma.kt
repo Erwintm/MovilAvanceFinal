@@ -137,6 +137,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 }
 class BootReceiver : BroadcastReceiver() {
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onReceive(context: Context, intent: Intent) {
 
@@ -148,8 +149,9 @@ class BootReceiver : BroadcastReceiver() {
 
             CoroutineScope(Dispatchers.IO).launch {
 
-                // ⚠️ YA SIN FLOW → lista directa
                 val recordatorios = repo.getAllRecordatoriosDirect()
+
+                val now = LocalDateTime.now()
 
                 recordatorios.forEach { rec ->
 
@@ -158,14 +160,17 @@ class BootReceiver : BroadcastReceiver() {
                         ZoneId.systemDefault()
                     )
 
-                    alarmScheduler.schedule(
-                        AlarmItem(
-                            noteId = rec.notaId,
-                            alarmTime = dateTime,
-                            title = rec.titulo,
-                            description = rec.descripcion
+
+                    if (dateTime.isAfter(now)) {
+                        alarmScheduler.schedule(
+                            AlarmItem(
+                                noteId = rec.notaId,
+                                alarmTime = dateTime,
+                                title = rec.titulo,
+                                description = rec.descripcion
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

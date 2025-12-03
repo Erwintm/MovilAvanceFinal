@@ -31,6 +31,10 @@ import java.time.ZoneId
 import java.util.Calendar
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,82 +74,116 @@ fun EditRecordatorioScreen(
                 .format(Date(recordatorio.fechaRecordatorio))
         )
     }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xD2000000))
+            .padding(20.dp)
     ) {
-        Text(stringResource(R.string.editar_recordatorio), style = MaterialTheme.typography.titleLarge)
-
-        OutlinedTextField(
-            value = titulo,
-            onValueChange = { titulo = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.titulo)) }
-        )
-
-        OutlinedTextField(
-            value = descripcion,
-            onValueChange = { descripcion = it },
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.descripcion)) }
-        )
-
-        // Selección de fecha/hora
-        Button(onClick = {
-            DatePickerDialog(
-                context,
-                { _, year, month, day ->
-                    TimePickerDialog(
-                        context,
-                        { _, hour, minute ->
-                            calendar.set(year, month, day, hour, minute)
-                            calendar.set(Calendar.SECOND, 0)
-                            calendar.set(Calendar.MILLISECOND, 0)
-                            fechaTexto = "$day/${month + 1}/$year $hour:$minute"
-
-                        },
-                        calendar.get(Calendar.HOUR_OF_DAY),
-                        calendar.get(Calendar.MINUTE),
-                        false
-                    ).show()
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
-        }) {
-            Text(fechaTexto)
-        }
-
-        // Guardar cambios
-        Button(onClick = {
-            val actualizado = recordatorio.copy(
-                titulo = titulo,
-                descripcion = descripcion,
-                fechaRecordatorio = calendar.timeInMillis
+        Column(
+            modifier = Modifier.fillMaxSize().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                stringResource(R.string.editar_recordatorio),
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White
             )
 
-            // Update en BD
-            recordatorioViewModel.update(actualizado)
-
-            // Reprogramar alarma
-            val dateTime = LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(actualizado.fechaRecordatorio),
-                ZoneId.systemDefault()
-            )
-            alarmScheduler.schedule(
-                AlarmItem(
-                    noteId = actualizado.notaId,
-                    alarmTime = dateTime,
-                    title = actualizado.titulo,
-                    description = actualizado.descripcion
+            OutlinedTextField(
+                value = titulo,
+                onValueChange = { titulo = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.titulo),
+                    color = Color.White) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    focusedIndicatorColor = Color.White,
+                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.5f),
+                    cursorColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent
                 )
             )
 
-            navController.popBackStack()
-        }) {
-            Text(stringResource(R.string.guardar_cambios))
+            OutlinedTextField(
+                value = descripcion,
+                onValueChange = { descripcion = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.descripcion),
+                    color = Color.White) },
+                colors = TextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedLabelColor = Color.White,
+                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
+                    focusedIndicatorColor = Color.White,
+                    unfocusedIndicatorColor = Color.White.copy(alpha = 0.5f),
+                    cursorColor = Color.White,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent
+                )
+            )
+
+            // Selección de fecha/hora
+            Button(onClick = {
+                DatePickerDialog(
+                    context,
+                    { _, year, month, day ->
+                        TimePickerDialog(
+                            context,
+                            { _, hour, minute ->
+                                calendar.set(year, month, day, hour, minute)
+                                calendar.set(Calendar.SECOND, 0)
+                                calendar.set(Calendar.MILLISECOND, 0)
+                                fechaTexto = "$day/${month + 1}/$year $hour:$minute"
+
+                            },
+                            calendar.get(Calendar.HOUR_OF_DAY),
+                            calendar.get(Calendar.MINUTE),
+                            false
+                        ).show()
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            }) {
+                Text(fechaTexto)
+            }
+
+            // Guardar cambios
+            Button(onClick = {
+                val actualizado = recordatorio.copy(
+                    titulo = titulo,
+                    descripcion = descripcion,
+                    fechaRecordatorio = calendar.timeInMillis
+                )
+
+                // Update en BD
+                recordatorioViewModel.update(actualizado)
+
+                // Reprogramar alarma
+                val dateTime = LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(actualizado.fechaRecordatorio),
+                    ZoneId.systemDefault()
+                )
+                alarmScheduler.schedule(
+                    AlarmItem(
+                        noteId = actualizado.notaId,
+                        alarmTime = dateTime,
+                        title = actualizado.titulo,
+                        description = actualizado.descripcion
+                    )
+                )
+
+                navController.popBackStack()
+            }) {
+                Text(stringResource(R.string.guardar_cambios))
+            }
         }
     }
 }
