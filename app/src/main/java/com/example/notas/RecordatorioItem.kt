@@ -41,13 +41,13 @@ fun RecordatorioItem(
     onDelete: () -> Unit,
     onEdit: () -> Unit
 ) {
-    // Convertir correctamente el epochMillis a LocalDateTime
+    // Convertir epochMillis a LocalDateTime
     val dateTime = LocalDateTime.ofInstant(
         Instant.ofEpochMilli(recordatorio.fechaRecordatorio),
         ZoneId.systemDefault()
     )
 
-    // Formatear correctamente
+
     val fechaTexto = dateTime.format(
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
     )
@@ -62,7 +62,7 @@ fun RecordatorioItem(
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // ⬅️ ESTA ES LA FECHA CORRECTA
+
         Text(
             text = fechaTexto,
             style = MaterialTheme.typography.bodySmall,
